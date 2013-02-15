@@ -7,17 +7,14 @@ require "git_wit/version"
 Gem::Specification.new do |s|
   s.name        = "git_wit"
   s.version     = GitWit::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of GitWit."
+  s.authors     = ["Greg Thornton"]
+  s.email       = ["xdissent@me.com"]
+  s.homepage    = "http://xdissent.com"
+  s.summary     = "A simple Git server for Rails."
   s.description = "TODO: Description of GitWit."
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 3.2.12"
-  # s.add_dependency "jquery-rails"
-
-  s.add_development_dependency "sqlite3"
 end

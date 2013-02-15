@@ -1,0 +1,8 @@
+Description:
+    Creates a GitWit initializer for your application.
+
+Example:
+    rails generate git_wit:install
+
+    This will create:
+        config/intializers/git_wit.rb

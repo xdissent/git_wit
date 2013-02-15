@@ -1,3 +1,7 @@
 = GitWit
 
+A simple Git server for Rails.
+
+Run "rails g git_wit:install".
+
 This project rocks and uses MIT-LICENSE.
