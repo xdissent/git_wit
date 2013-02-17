@@ -6,9 +6,6 @@ GitWit.configure do |config|
   # No trailing slash necessary.
   # config.repositories_path = "/var/git"
 
-  # Turn SSH key management on or off (the default.)
-  # config.manage_ssh = false
-
   # Configure the user for which to manage SSH keys (if enabled.) This user 
   # must be allowed to run gw-ssh (or bundle exec or rvm or whatever) via sudo 
   # as the application user.
@@ -39,12 +36,23 @@ GitWit.configure do |config|
   # config.committer_email_attribute = :email   # GIT_COMMITTER_NAME
   # config.committer_name_attribute = :name     # GIT_COMMITTER_EMAIL
 
-  # Customize the authentication handler. Below is an example for devise. Your
-  # callable should accept a username and password and return a user model.
+  # Customize how the user is derived from the username. Below is an example for 
+  # devise. Your callable should accept a username return a user model. A string
+  # is OK if you don't want to use real models. In fact, the default just 
+  # returns the username as the user model. You'll get the user as an argument 
+  # to the config.authenticate method later for actual authentication.
   # 
-  # config.authenticate = ->(username, password) do
-  #   user = User.find_for_authentication username: username
-  #   user if user.valid_password?(password)
+  # config.user_for_authentication = ->(username) do
+  #   User.find_for_authentication username: username
+  # end
+
+  # Customize the authentication handler. Below is an example for devise. Your
+  # callable should accept a user (from config.user_for_authentication) and 
+  # a password. Return a boolean indicating whether the user is autenticated
+  # against the given password.
+  # 
+  # config.authenticate = ->(user, password) do
+  #   user.try :valid_password, password
   # end
 
   # Customize the authorization handlers. There are two - one for read and one
