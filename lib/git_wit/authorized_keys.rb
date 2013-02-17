@@ -3,15 +3,30 @@ require "authorized_keys"
 
 module GitWit
   def self.regenerate_authorized_keys(keymap)
-    key_path = File.expand_path("~#{ssh_user}/.ssh/authorized_keys")
-    key_file = AuthorizedKeys::File.new key_path
+    key_file = authorized_keys_file
     key_file.clear do |file|
       keymap.each do |user, keys|
         keys.each do |key|
-          key_file.add AuthorizedKeys::Key.shell_key_for_user user, key
+          key_file.add AuthorizedKeys::Key.shell_key_for_username(username, key)
         end
       end
     end
+  end
+
+  def self.add_authorized_key(username, key)
+    authorized_keys_file.add AuthorizedKeys::Key.shell_key_for_username(username, key)
+  end
+
+  def self.remove_authorized_key(key)
+    authorized_keys_file.remove key
+  end
+
+  def self.authorized_keys_file
+    AuthorizedKeys::File.new authorized_keys_path
+  end
+
+  def self.authorized_keys_path
+    File.expand_path("~#{ssh_user}/.ssh/authorized_keys")
   end
 
   module AuthorizedKeys
@@ -77,9 +92,9 @@ module GitWit
       SHELL_OPTIONS = %w(no-port-forwarding no-X11-forwarding 
         no-agent-forwarding no-pty)
 
-      def self.shell_key_for_user(user, key)
+      def self.shell_key_for_username(username, key)
         key = self.new key if key.is_a? String
-        key.options = [%(command="gw-shell #{user}"), *SHELL_OPTIONS]
+        key.options = [%(command="gw-shell #{username}"), *SHELL_OPTIONS]
         key
       end
     end
