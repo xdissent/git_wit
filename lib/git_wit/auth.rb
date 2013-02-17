@@ -1,5 +1,8 @@
 module GitWit
   def self.user_for_authentication(username)
+    if config.user_for_authentication.respond_to?(:call)
+      return config.user_for_authentication.call(username)
+    end
     username
   end
 
