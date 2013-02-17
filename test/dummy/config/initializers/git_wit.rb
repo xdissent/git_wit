@@ -55,7 +55,7 @@ GitWit.configure do |config|
   # against the given password.
   # 
   config.authenticate = ->(user, password) do
-    user && user.valid_password?(password)
+    user && user.active_for_authentication? && user.valid_password?(password)
   end
 
   # Customize the authorization handlers. There are two - one for read and one
