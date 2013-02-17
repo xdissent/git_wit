@@ -8,7 +8,7 @@ class Ability
 
     if user.has_role? :admin
       can :manage, :all
-    else
+    elsif user.id.present?
       can :manage, Repository, user_id: user.id
     end
   end

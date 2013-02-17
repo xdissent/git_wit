@@ -1,29 +1,52 @@
-<h1>Listing repositories</h1>
-
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Path</th>
-    <th>User</th>
-    <th>Public</th>
-    <th></th>
-    <th></th>
-    <th></th>
-  </tr>
-
-<% @repositories.each do |repository| %>
-  <tr>
-    <td><%= repository.name %></td>
-    <td><%= repository.path %></td>
-    <td><%= repository.user.username %></td>
-    <td><%= repository.public %></td>
-    <td><% if can? :read, repository %><%= link_to 'Show', repository %><% end %></td>
-    <td><% if can? :update, repository %><%= link_to 'Edit', edit_repository_path(repository) %><% end %></td>
-    <td><% if can? :destroy, repository %><%= link_to 'Destroy', repository, method: :delete, data: { confirm: 'Are you sure?' } %><% end %></td>
-  </tr>
-<% end %>
+<%- model_class = Repository -%>
+<div class="page-header">
+  <h1><%=t '.title', :default => model_class.model_name.human.pluralize %></h1>
+</div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th><%= model_class.human_attribute_name(:name) %></th>
+      <th><%= model_class.human_attribute_name(:path) %></th>
+      <th><%= model_class.human_attribute_name(:user_id) %></th>
+      <th><%= model_class.human_attribute_name(:public) %></th>
+      <th><%= model_class.human_attribute_name(:created_at) %></th>
+      <th><%=t '.actions', :default => t("helpers.actions") %></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @repositories.each do |repository| %>
+      <tr>
+        <td>
+          <% if can? :read, repository %>
+            <%= link_to repository.name, repository_path(repository) %>
+          <% else %>
+            <%= repository.name %>
+          <% end %>
+        </td>
+        <td><%= repository.path %></td>
+        <td><%= repository.user.try :username %></td>
+        <td><%= repository.public %></td>
+        <td><%=l repository.created_at %></td>
+        <td>
+          <% if can? :update, repository %>
+            <%= link_to t('.edit', :default => t("helpers.links.edit")),
+                        edit_repository_path(repository), :class => 'btn btn-mini' %>
+          <% end %>
+          <% if can? :destroy, repository %>
+            <%= link_to t('.destroy', :default => t("helpers.links.destroy")),
+                        repository_path(repository),
+                        :method => :delete,
+                        :data => { :confirm => t('.confirm', :default => t("helpers.links.confirm", :default => 'Are you sure?')) },
+                        :class => 'btn btn-mini btn-danger' %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
 </table>
 
-<br />
-
-<% if can? :create, Repository %><%= link_to 'New Repository', new_repository_path %><% end %>
+<% if can? :create, Repository %>
+  <%= link_to t('.new', :default => t("helpers.links.new")),
+              new_repository_path,
+              :class => 'btn btn-primary' %>
+<% end %>
