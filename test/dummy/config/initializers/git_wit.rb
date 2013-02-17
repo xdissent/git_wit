@@ -46,7 +46,7 @@ GitWit.configure do |config|
   # to the config.authenticate method later for actual authentication.
   # 
   config.user_for_authentication = ->(username) do
-    User.find_for_authentication email: username
+    User.find_for_authentication username: username
   end
 
   # Customize the authentication handler. Below is an example for devise. Your
