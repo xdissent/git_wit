@@ -1,8 +1,13 @@
 module GitWit
-  def self.authenticate(username, password)
+  def self.user_for_authentication(username)
+    username
+  end
+
+  def self.authenticate(user, password)
     if config.authenticate.respond_to?(:call)
-      config.authenticate.call(username, password)
+      return config.authenticate.call(user, password)
     end
+    false
   end
 
   def self.authorize_write(user, repository)

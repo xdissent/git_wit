@@ -11,7 +11,7 @@ module GitWit
 
     def service
       # Shell out to git-http-backend.
-      out, err, status = Open3.capture3 git_env, GitWit.git_http_backend_path, 
+      out, err, status = Open3.capture3 shell_env, GitWit.git_http_backend_path, 
         stdin_data: request.raw_post, binmode: true
 
       # Bail if the backend failed.
@@ -31,10 +31,12 @@ module GitWit
     end
 
     private
-    def git_env
-      http_env = request.headers.select { |k, _| k.start_with? "HTTP_" }
+    def shell_env
+      request.headers.dup.extract!(*ENV_KEEPERS).merge(http_env).merge(git_env)
+    end
 
-      extras = {
+    def git_env
+      {
         GIT_HTTP_EXPORT_ALL: "uknoit",
         GIT_PROJECT_ROOT: GitWit.repositories_path,
         PATH_INFO: "/#{params[:repository]}/#{params[:refs]}",
@@ -42,8 +44,10 @@ module GitWit
         GIT_COMMITTER_NAME: user_attr(:committer_name),
         GIT_COMMITTER_EMAIL: user_attr(:committer_email)
       }.reject { |_, v| v.nil? }.stringify_keys
+    end
 
-      request.headers.dup.extract!(*ENV_KEEPERS).merge(http_env).merge(extras)
+    def http_env
+      request.headers.select { |k, _| k.start_with? "HTTP_" }
     end
 
     def authenticate
@@ -54,7 +58,8 @@ module GitWit
       # Authenticate user *ONLY IF CREDENTIALS ARE PROVIDED*
       @user = authenticate_with_http_basic do |username, password|
         @username = username
-        GitWit.authenticate username, password
+        user = GitWit.user_for_authentication username
+        user if GitWit.authenticate user, password
       end
 
       # Request credentials again if provided and no user was authenticated.
@@ -64,12 +69,10 @@ module GitWit
     end
 
     def authorize
-      # Authorize for read-only operations
-      if !write_op?
-        raise UnauthorizedError unless GitWit.authorize_read @user, params[:repository]
-        return
-      end
+      write_op? ? authorize_write : authorize_read
+    end
 
+    def authorize_write
       # Never allow anonymous write operations.
       if @user.nil?
         # Bail if we don't allow insecure auth and the protocol is insecure.
@@ -85,10 +88,13 @@ module GitWit
       raise UnauthorizedError unless GitWit.authorize_write @user, params[:repository]
     end
 
+    def authorize_read
+      raise UnauthorizedError unless GitWit.authorize_read @user, params[:repository]
+    end
+
     # TODO: Sure about this?
     def write_op?
-      str = "git-receive-pack"
-      params[:service] == str || params[:refs].end_with?(str)
+      params[:service] == "git-receive-pack"
     end
 
     def find_repository

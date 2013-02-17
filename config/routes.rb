@@ -1,5 +1,5 @@
 GitWit::Engine.routes.draw do
-  match ":repository/*refs" => "git#service", 
-    repository: /[-\/\w\.]+\.git/, 
-    via: [:get, :post, :head]
+  get ":repository/*refs" => "git#service", repository: /[-\/\w\.]+\.git/
+  post ":repository/:service" => "git#service", repository: /[-\/\w\.]+\.git/, 
+    service: /git-[\w\-]+/
 end
