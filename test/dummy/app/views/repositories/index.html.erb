@@ -15,7 +15,7 @@
   <tr>
     <td><%= repository.name %></td>
     <td><%= repository.path %></td>
-    <td><%= repository.user.email %></td>
+    <td><%= repository.user.username %></td>
     <td><%= repository.public %></td>
     <td><% if can? :read, repository %><%= link_to 'Show', repository %><% end %></td>
     <td><% if can? :update, repository %><%= link_to 'Edit', edit_repository_path(repository) %><% end %></td>
