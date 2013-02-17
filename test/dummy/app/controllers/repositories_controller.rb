@@ -38,6 +38,7 @@ class RepositoriesController < ApplicationController
     @repository.user = current_user
     respond_to do |format|
       if @repository.save
+        @repository.create_git_repository
         format.html { redirect_to @repository, notice: 'Repository was successfully created.' }
         format.json { render json: @repository, status: :created, location: @repository }
       else
@@ -65,6 +66,7 @@ class RepositoriesController < ApplicationController
   # DELETE /repositories/1.json
   def destroy
     @repository.destroy
+    @repository.destroy_git_repository
 
     respond_to do |format|
       format.html { redirect_to repositories_url }
