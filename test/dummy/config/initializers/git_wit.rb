@@ -45,9 +45,9 @@ GitWit.configure do |config|
   # returns the username as the user model. You'll get the user as an argument 
   # to the config.authenticate method later for actual authentication.
   # 
-  # config.user_for_authentication = ->(username) do
-  #   User.find_for_authentication username: username
-  # end
+  config.user_for_authentication = ->(username) do
+    User.find_for_authentication email: username
+  end
 
   # Customize the authentication handler. Below is an example for devise. Your
   # callable should accept a user (from config.user_for_authentication) and 
@@ -55,7 +55,7 @@ GitWit.configure do |config|
   # against the given password.
   # 
   config.authenticate = ->(user, password) do
-    true
+    user && user.valid_password?(password)
   end
 
   # Customize the authorization handlers. There are two - one for read and one
@@ -64,9 +64,9 @@ GitWit.configure do |config|
   # prefixed.) A boolean should be returned. Below are some examples.
   # 
   config.authorize_read = ->(user, repository) do
-    true
+    Ability.new(user).can? :read, Repository.find_by_path(repository)
   end
   config.authorize_write = ->(user, repository) do
-    true
+    Ability.new(user).can? :update, Repository.find_by_path(repository)
   end
 end

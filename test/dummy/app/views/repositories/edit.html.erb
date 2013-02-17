@@ -1,0 +1,6 @@
+<h1>Editing repository</h1>
+
+<%= render 'form' %>
+
+<% if can? :read, @repository %><%= link_to 'Show', @repository %> |<% end %>
+<%= link_to 'Back', repositories_path %>

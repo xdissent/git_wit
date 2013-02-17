@@ -1,0 +1,25 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Name:</b>
+  <%= @repository.name %>
+</p>
+
+<p>
+  <b>Path:</b>
+  <%= @repository.path %>
+</p>
+
+<p>
+  <b>User:</b>
+  <%= @repository.user.email %>
+</p>
+
+<p>
+  <b>Public:</b>
+  <%= @repository.public %>
+</p>
+
+
+<% if can? :update, @repository %><%= link_to 'Edit', edit_repository_path(@repository) %> |<% end %>
+<%= link_to 'Back', repositories_path %>

@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  path: MyString
+  user: 
+  public: false
+
+two:
+  name: MyString
+  path: MyString
+  user: 
+  public: false
