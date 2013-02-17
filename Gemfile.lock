@@ -100,6 +100,7 @@ GEM
     rake (10.0.3)
     rdoc (3.12.1)
       json (~> 1.4)
+    rolify (3.2.0)
     slop (3.4.3)
     sprockets (2.2.2)
       hike (~> 1.2)
@@ -130,5 +131,6 @@ DEPENDENCIES
   git_wit!
   jquery-rails
   pry-rails
+  rolify
   sqlite3
   tunnels
