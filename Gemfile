@@ -11,6 +11,7 @@ gem "sqlite3"
 gem "devise"
 gem "cancan"
 gem "rolify"
+gem "grit"
 
 # Declare any dependencies that are still in development here instead of in
 # your gemspec. These might include edge Rails or gems from your path or
