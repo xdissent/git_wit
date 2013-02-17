@@ -69,12 +69,26 @@
     </div>
 
     <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span12">
-          <%= bootstrap_flash %>
-          <%= yield %>
-        </div>
-      </div><!--/row-->
+      <% if content_for? :sidebar %>
+        <div class="row-fluid">
+          <div class="span3">
+            <div class="well sidebar-nav">
+              <%= yield :sidebar %>
+            </div><!--/.well -->
+          </div><!--/span-->
+          <div class="span9">
+            <%= bootstrap_flash %>
+            <%= yield %>
+          </div>
+        </div><!--/row-->
+      <% else %>
+        <div class="row-fluid">
+          <div class="span12">
+            <%= bootstrap_flash %>
+            <%= yield %>
+          </div>
+        </div><!--/row-->
+      <% end %>
 
       <footer>
         <p>&copy; Company 2013</p>

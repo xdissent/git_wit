@@ -1,4 +1,4 @@
-<div class="well">
+<% content_for :sidebar do %>
   <ul class="nav nav-list">
     <%- if controller_name != 'sessions' %>
       <li><%= link_to "Sign in", new_session_path(resource_name) %></li>
@@ -26,4 +26,4 @@
       <% end -%>
     <% end -%>
   </ul>
-</div>
+<% end %>
