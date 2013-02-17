@@ -64,8 +64,13 @@ module GitWit
 
       # Request credentials again if provided and no user was authenticated.
       if @user.nil? && request.authorization.present?
-        request_http_basic_authentication GitWit.realm
+        request_http_basic_authentication_if_allowed
       end
+    end
+
+    def request_http_basic_authentication_if_allowed
+      raise ForbiddenError if !GitWit.insecure_auth && !request.ssl?
+      request_http_basic_authentication GitWit.realm
     end
 
     def authorize
@@ -74,12 +79,7 @@ module GitWit
 
     def authorize_write
       # Never allow anonymous write operations.
-      if @user.nil?
-        # Bail if we don't allow insecure auth and the protocol is insecure.
-        raise ForbiddenError if !GitWit.insecure_auth && !request.ssl?
-        # Request authentication credentials - either ssl or don't care.
-        request_http_basic_authentication GitWit.realm
-      end
+      return request_http_basic_authentication_if_allowed if @user.nil?
 
       # Disallow write operations over insecure protocol per configuration.
       raise ForbiddenError if !GitWit.insecure_write && !request.ssl?
@@ -89,7 +89,9 @@ module GitWit
     end
 
     def authorize_read
-      raise UnauthorizedError unless GitWit.authorize_read @user, params[:repository]
+      return if GitWit.authorize_read(@user, params[:repository])
+      return request_http_basic_authentication_if_allowed if @user.nil?
+      raise UnauthorizedError
     end
 
     # TODO: Sure about this?
