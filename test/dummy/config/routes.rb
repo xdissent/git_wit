@@ -5,5 +5,5 @@ Rails.application.routes.draw do
 
   devise_for :users
 
-  mount GitWit::Engine => "/git_wit"
+  mount GitWit::Engine => "/"
 end
