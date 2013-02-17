@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :public_keys
+
+
   root to: "repositories#index"
 
   resources :repositories

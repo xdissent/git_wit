@@ -1,0 +1,16 @@
+<%= form_for @public_key, :html => { :class => 'form-horizontal' } do |f| %>
+  <% @public_key.errors.full_messages.each do |msg| %>
+    <p><%= msg %></p>
+  <% end %>
+  <div class="control-group">
+    <%= f.label :raw_content, :class => 'control-label' %>
+    <div class="controls">
+      <%= f.text_area :raw_content, :class => 'text_area' %>
+    </div>
+  </div>
+  <div class="form-actions">
+    <%= f.submit nil, :class => 'btn btn-primary' %>
+    <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
+                public_keys_path, :class => 'btn' %>
+  </div>
+<% end %>

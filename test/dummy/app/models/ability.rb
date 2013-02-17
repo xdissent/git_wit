@@ -10,6 +10,7 @@ class Ability
       can :manage, :all
     elsif user.id.present?
       can :manage, Repository, user_id: user.id
+      can [:read, :create, :destroy], PublicKey, user_id: user.id
     end
   end
 end

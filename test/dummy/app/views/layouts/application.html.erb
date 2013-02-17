@@ -47,7 +47,8 @@
           <a class="brand" href="/">GitDummy</a>
           <div class="container-fluid nav-collapse">
             <ul class="nav">
-              <li><%= link_to "Repositories", repositories_path  %></li>
+              <% if can? :read, Repository %><li><%= link_to "Repositories", repositories_path  %></li><% end %>
+              <% if can? :read, PublicKey %><li><%= link_to "Public keys", public_keys_path  %></li><% end %>
             </ul>
             <% if user_signed_in? %>
               <ul class="nav pull-right">
