@@ -54,6 +54,8 @@ GEM
     diff-lcs (1.2.1)
     erubis (2.7.0)
     eventmachine (1.0.0)
+    execjs (1.4.0)
+      multi_json (~> 1.0)
     grit (2.5.0)
       diff-lcs (~> 1.1)
       mime-types (~> 1.15)
@@ -121,6 +123,10 @@ GEM
       polyglot (>= 0.3.1)
     tunnels (1.2.2)
       eventmachine
+    twitter-bootstrap-rails (2.2.4)
+      actionpack (>= 3.1)
+      execjs
+      railties (>= 3.1)
     tzinfo (0.3.35)
     warden (1.2.1)
       rack (>= 1.0)
@@ -141,3 +147,4 @@ DEPENDENCIES
   rolify
   sqlite3
   tunnels
+  twitter-bootstrap-rails
