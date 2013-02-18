@@ -15,7 +15,7 @@ for fun:
 config.repositories_path = Rails.root.join("tmp", "repositories").to_s
 ```
 
-Normall you wouldn't want to allow users to send their authentication 
+Normally you wouldn't want to allow users to send their authentication 
 credentials over an insecure protocol like HTTP, because they'll be sent in 
 plain text over the wire. And since anonymous write access is always disallowed,
 that means you can't safely push over HTTP without SSL. To disable these 
