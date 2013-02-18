@@ -34,7 +34,7 @@ class ShellTest < ActiveSupport::TestCase
     old_root = ENV.delete "RAILS_ROOT"
     old_bundle = ENV.delete "BUNDLE_GEMFILE"
 
-    tmp_dir = File.join(Rails.root, "tmp")
+    tmp_dir = Rails.root.join("tmp").to_s
     assert Dir.exist?(tmp_dir)
     Dir.chdir(tmp_dir) do
       assert_equal tmp_dir, GitWit::Shell.rails_root
