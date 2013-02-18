@@ -39,7 +39,7 @@ module GitWit
       {
         GIT_HTTP_EXPORT_ALL: "uknoit",
         GIT_PROJECT_ROOT: GitWit.repositories_path,
-        PATH_INFO: "/#{params[:repository]}/#{params[:refs]}",
+        PATH_INFO: "/#{params[:repository]}/#{params[:refs] || params[:service]}",
         REMOTE_USER: (user_attr(:username) || @username),
         GIT_COMMITTER_NAME: user_attr(:committer_name),
         GIT_COMMITTER_EMAIL: user_attr(:committer_email)
