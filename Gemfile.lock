@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     git_wit (0.0.1)
+      authorized_keys (~> 1.1.1)
       rails (~> 3.2.12)
 
 GEM
@@ -135,7 +136,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  authorized_keys
   better_errors
   binding_of_caller
   cancan
