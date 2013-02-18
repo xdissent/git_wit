@@ -1,7 +1,0 @@
-= GitWit
-
-Dead simple Git hosting for Rails apps.
-
-Run "rails g git_wit:install".
-
-This project rocks and uses MIT-LICENSE.
