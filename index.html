@@ -123,12 +123,12 @@ repositories over HTTPS:</p>
 <p>The default Rails development environment has a config value called 
 <code>consider_all_requests_local</code>, which is <code>true</code>. This prevents GitWit from 
 correctly handling authentication responses in some cases. It's not a big deal,
-you'll just be asked to reauthenticate more often and some responses will be
+you'll just be asked to re-authenticate more often and some responses will be
 slightly misleading. But the alternative solution, which is to set 
-<code>consider_all_requests_local</code> to false, disables any special Rails error 
+<code>consider_all_requests_local</code> to <code>false</code>, disables any special Rails error 
 handling - quite a bummer for development. It would be nice to sort this out a
 little better in the future. Note that the production environment uses <code>false</code>
-by default and handles errors approriately.</p>
+by default and handles errors appropriately.</p>
 
 <h2>Advanced Usage (Devise, Cancan, etc.)</h2>
 
@@ -143,7 +143,7 @@ Example controllers for managing repositories and public keys are included.</p>
 <h2>SSH support - AKA: The hard part</h2>
 
 <p>To enable git operations over SSH, you <strong>must have a dedicated SSH user</strong>. This
-user will <em>only</em> be used for SSH autentication. Immediately after successfully
+user will <em>only</em> be used for SSH authentication. Immediately after successfully
 authenticating, the SSH user will <code>sudo</code> to the application user to continue
 with the git operation. This eliminates the need for all the bat-shit crazy git
 pulls/pushes and SSH wrappers and crap that are typical of gitolite/gitosis
