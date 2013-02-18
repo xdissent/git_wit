@@ -1,6 +1,7 @@
 # GitWit
 
 [![Build Status](https://travis-ci.org/xdissent/git_wit.png?branch=master)](https://travis-ci.org/xdissent/git_wit)
+[![Gem Version](https://badge.fury.io/rb/git_wit.png)](http://badge.fury.io/rb/git_wit)
 
 Dead simple Git hosting for Rails apps.
 
@@ -83,12 +84,43 @@ Your server will ask you for a username and password when you push - use
 `writer` for both and it should accept your changes.
 
 
+## SSL
+
+You **really** should turn `insecure_auth` and `insecure_write` back to `false`
+as quickly as possible and enable SSL for read/write access. GitWit doesn't 
+need any special SSL configuration - just flip SSL on in whatever web server
+is running Rails. You can also use the 
+[tunnels](https://github.com/jugyo/tunnels) gem to run your app with SSL in 
+development. Just add it to the Gemfile and run `bundle install` followed by
+`sudo tunnels` (or `rvmsudo tunnels` for RVM). For `rails s`, which runs on
+port 3000 by default, run `sudo tunnels 443 3000`. Now you may clone 
+repositories over HTTPS:
+
+```console
+$ git clone https://localhost/example.git
+```
+
+
+## A quick note about "local requests"
+
+The default Rails development environment has a config value called 
+`consider_all_requests_local`, which is `true`. This prevents GitWit from 
+correctly handling authentication responses in some cases. It's not a big deal,
+you'll just be asked to reauthenticate more often and some responses will be
+slightly misleading. But the alternative solution, which is to set 
+`consider_all_requests_local` to false, disables any special Rails error 
+handling - quite a bummer for development. It would be nice to sort this out a
+little better in the future. Note that the production environment uses `false`
+by default and handles errors approriately.
+
+
 ## Advanced Usage (Devise, Cancan, etc.)
 
 See [`test/dummy`](https://github.com/xdissent/git_wit/tree/master/test/dummy) 
 for an example app that integrates 
 [Devise](https://github.com/plataformatec/devise), 
-[Cancan](https://github.com/ryanb/cancan), and 
+[Cancan](https://github.com/ryanb/cancan), 
+[rolify](https://github.com/EppO/rolify) and
 [twitter-bootstrap-rails](https://github.com/seyhunak/twitter-bootstrap-rails). 
 Example controllers for managing repositories and public keys are included.
 
