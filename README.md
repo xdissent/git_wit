@@ -6,9 +6,21 @@ Dead simple Git hosting for Rails apps.
 
 ## Quickstart
 
-Run `rails g git_wit:install` and checkout `config/initializers/git_wit.rb`.
-You'll want to first change `config.repositories_path` to a folder where you'd
-like to store your repositories. Let's use "tmp/repositories" in our app root
+Create a Rails 3.2 app if you don't already have one. Add `git_wit` to your
+Gemfile:
+
+```ruby
+# Use github for now - early development:
+gem "git_wit", git: "https://github.com/xdissent/git_wit.git"
+
+# Later it might be safe to use a rubygems release:
+# gem "git_wit", "~> 0.1.0"
+```
+
+Run `bundle install` followed by `rails g git_wit:install` and then checkout 
+[`config/initializers/git_wit.rb`](https://github.com/xdissent/git_wit/blob/master/lib/generators/git_wit/templates/git_wit.rb). 
+You'll want to first change `config.repositories_path` to a folder where you'd 
+like to store your repositories. Let's use "tmp/repositories" in our app root 
 for fun:
 
 ```ruby
@@ -187,7 +199,7 @@ You may now clone/push/pull over SSH - assuming the key you installed for
 `writer` is known to your ssh agent (ie `~/.ssh/id_rsa`):
 
 ```console
-$ git clone gitweb@localhost:example.git
+$ git clone gitwit@localhost:example.git
 ```
 
 See the dummy app in 

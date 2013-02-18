@@ -22,8 +22,8 @@ module GitWit
     end
 
     def self.rails_root
-      return File.expand_path(ENV["RAILS_ROOT"]) if ENV["RAILS_ROOT"].present?
-      return File.expand_path("..", ENV["BUNDLE_GEMFILE"]) if ENV["BUNDLE_GEMFILE"].present?
+      return File.expand_path(ENV["RAILS_ROOT"]) if ENV["RAILS_ROOT"]
+      return File.expand_path("..", ENV["BUNDLE_GEMFILE"]) if ENV["BUNDLE_GEMFILE"]
       Dir.pwd
     end
 
@@ -43,7 +43,7 @@ module GitWit
 
     def self.authenticate!(username)
       user = authenticate username
-      abort "Anonymous access denied" unless user.present?
+      abort "Anonymous access denied" if user.nil?
       user
     end
 
