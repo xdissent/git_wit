@@ -46,7 +46,8 @@ GitWit.configure do |config|
   # to the config.authenticate method later for actual authentication.
   # 
   config.user_for_authentication = ->(username) do
-    User.find_for_authentication username: username
+    user = User.find_for_authentication username: username
+    user if user.active_for_authentication?
   end
 
   # Customize the authentication handler. Below is an example for devise. Your
@@ -55,7 +56,7 @@ GitWit.configure do |config|
   # against the given password.
   # 
   config.authenticate = ->(user, password) do
-    user && user.active_for_authentication? && user.valid_password?(password)
+    user && user.valid_password?(password)
   end
 
   # Customize the authorization handlers. There are two - one for read and one

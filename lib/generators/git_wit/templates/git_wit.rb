@@ -44,10 +44,12 @@ GitWit.configure do |config|
   # devise. Your callable should accept a username return a user model. A string
   # is OK if you don't want to use real models. In fact, the default just 
   # returns the username as the user model. You'll get the user as an argument 
-  # to the config.authenticate method later for actual authentication.
+  # to the config.authenticate method later for actual authentication. Returning
+  # nil means "authentication failed."
   # 
   # config.user_for_authentication = ->(username) do
-  #   User.find_for_authentication username: username
+  #   user = User.find_for_authentication username: username
+  #   user if user.active_for_authentication?
   # end
 
   # Customize the authentication handler. Below is an example for devise. Your
