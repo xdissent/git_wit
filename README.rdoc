@@ -1,6 +1,6 @@
 = GitWit
 
-A simple Git server for Rails.
+Dead simple Git hosting for Rails apps.
 
 Run "rails g git_wit:install".
 
