@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>GitWit by xdissent</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>GitWit</h1>
+        <p>Dead simple Git hosting for Rails apps.</p>
+
+        <p class="view"><a href="https://github.com/xdissent/git_wit">View the Project on GitHub <small>xdissent/git_wit</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/xdissent/git_wit/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/xdissent/git_wit/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/xdissent/git_wit">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p><a href="https://travis-ci.org/xdissent/git_wit"><img src="https://travis-ci.org/xdissent/git_wit.png?branch=master" alt="Build Status"></a></p>
+
+<h2>Quickstart</h2>
+
+<p>Run <code>rails g git_wit:install</code> and checkout <code>config/initializers/git_wit.rb</code>.
+You'll want to first change <code>config.repositories_path</code> to a folder where you'd
+like to store your repositories. Let's use "tmp/repositories" in our app root
+for fun:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">repositories_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"tmp"</span><span class="p">,</span> <span class="s2">"repositories"</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span>
+</pre></div>
+
+<p>Normall you wouldn't want to allow users to send their authentication 
+credentials over an insecure protocol like HTTP, because they'll be sent in 
+plain text over the wire. And since anonymous write access is always disallowed,
+that means you can't safely push over HTTP without SSL. To disable these 
+protections, something you'd <strong>never</strong> do in a production environment, change
+the following config values in the initializer:</p>
+
+<pre><code>config.insecure_auth = true
+config.insecure_write = true
+</code></pre>
+
+<p>Now let's set up some simple (fake) authentication and authorization:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="k">do</span>
+  <span class="sx">%w(reader writer)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">user</span> <span class="o">==</span> <span class="n">password</span>
+<span class="k">end</span>
+
+<span class="n">config</span><span class="o">.</span><span class="n">authorize_read</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">repository</span><span class="p">)</span> <span class="k">do</span>
+  <span class="sx">%w(reader writer)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="n">config</span><span class="o">.</span><span class="n">authorize_write</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">repository</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">user</span> <span class="o">==</span> <span class="s2">"writer"</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>What we've done is effectively create two users: <code>reader</code> and <code>writer</code>. Both can
+read all repositories, but only <code>writer</code> may write (and can write to any repo.)
+Both users are considered authenticated if the password matches the username.</p>
+
+<p>Now your app is ready to start serving git repos over HTTP. Just create the 
+repositories folder, initialize a repo and start the server:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> mkdir -p tmp/repositories
+<span class="gp">$</span> git init --bare tmp/repositories/example.git
+<span class="gp">$</span> rails s
+</pre></div>
+
+<p>Clone your repo, make some changes, and push:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> git clone http://localhost:3000/example.git
+<span class="gp">$</span> <span class="nb">cd </span>example
+<span class="gp">$</span> touch README
+<span class="gp">$</span> git add README
+<span class="gp">$</span> git commit -m <span class="s2">"First"</span>
+<span class="gp">$</span> git push origin master
+</pre></div>
+
+<p>Your server will ask you for a username and password when you push - use 
+<code>writer</code> for both and it should accept your changes.</p>
+
+<h2>SSH support</h2>
+
+<p>See the dummy app in <code>test/dummy</code> for a working example of <code>authorized_keys</code> 
+management for the <code>ssh_user</code>.</p>
+
+<p><strong>NOTE</strong> To manage SSH keys, the <code>ssh_user</code> <em>must</em> be allowed to <code>sudo</code> as the
+Rails application user, <strong>and</strong> vice versa. More documentation is forthcoming.</p>
+
+<p>This project rocks and uses MIT-LICENSE.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/xdissent">xdissent</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
