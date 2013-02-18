@@ -1,11 +1,14 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
-
 one:
-  user: 
-  content: MyText
-  comment: MyString
+  user: one
+  content: "ssh-rsa AAAAB3N2Xj++woMRw+RIoEOMK2J9dAQABAAABAQC6nrvPbt8L5b1eCHVNo8GQPN4PKUf9zaOknqgI6tJGViqV4evOhUB+MMBh+8C4cUFWu//09PnXLzMjGdP6HNe+J1+lzlY3JQ+PxDFLTUc+jD5XK3ybVC1yc2EAAAADAM/mDvO4WnCtBgcH3CgXfucUxyb9/dvJGIrGvKk/WPwC2k36L77xLFil3cUH8B1qSW2wD3BDcQKukG6vGMqHVI9nwVTkygy9U5MNuDjxl+/8gX5V02qe9uC4iNrZZ4A1N+sjMPcZ7nexDIRu27csAYnypyCd1mGEZanztEMzzR1CAn8AKVregSkbKsKuSfyIw+FDeT3dSAJpywn"
+  comment: "one@example.com"
 
 two:
-  user: 
-  content: MyText
-  comment: MyString
+  user: two
+  content: "ssh-rsa M/mDBh+8C4cUFWu//09CADAQABARw+RIoE1yc2EAAB3NA5b1eCAAzMjGdP6HAAza8LHVNo8GQPN4PKUf9PnXLNe+J1+lzlY3JQ+vAABAQC6nrvPbtAOMK2J9d2Xj++woMO4WnCtBgcH3CgXfucUxyb9/dvJOknqgI6tJGViqV4evOhUB+MMPxDFLTUc+jD5XK3ybVGIrGvKk/WPwC2k36L77xLFil3cUH8B1qSW2wD3BDcQKAKVred1mGEZanzpywnV02qe9uC4iNrZZ4A1N+sjukG6vGMqHVI9nwgSkbKsKuSfyIw+FDeT3dSAJxgy9U5MNuDjxl+/8gX5DIRu27csAYnypyCVTkyZ7netEMzzR1CAn8MPc"
+  comment: "two@example.com"
+
+three:
+  user: one
+  content: "ssh-rsa VNo8GQPN4PKUM/mDBh+8C4cUFWu//09Aza8LHf9PnXLNe+J1+lzlY3JQ+vAABACADAQABARw+RIoE1yc2EAAB3NA5b1eCAAzMjGdP6HAQC6nrvPbtAOMK2J9d2Xj++woMO4WnCtBgcH3CgXfucUxyb9/dvJOknqgI6tJGViqV4evOhUB+MMPxDFLTUc+jD5XK3ybVGIrGvKk/WPwC2k36L77xLFil3cUH8By9U5MNuDjxl+/8gX5DIRu27csAYnzpywnV02qe9uC4iNrZZ4A1N+sjukG6vGypyCVTkyZ7netEM1qSW2wD3BDcQKAKVred1mGEZanMqHVI9ngzzR1CAn8MPcwgSkbKsKuSfyIw+FDeT3dSAJx"
+  comment: "one@another.com"

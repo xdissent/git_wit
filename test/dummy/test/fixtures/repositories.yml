@@ -1,13 +1,17 @@
-# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+user1_public:
+  name: one public
+  path: one/public.git
+  user: one
+  public: true
 
-one:
-  name: MyString
-  path: MyString
-  user: 
+user1_private:
+  name: one private
+  path: one/private.git
+  user: one
   public: false
 
-two:
-  name: MyString
-  path: MyString
-  user: 
+user2_private:
+  name: two private
+  path: two/private.git
+  user: two
   public: false
