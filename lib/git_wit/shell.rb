@@ -22,8 +22,9 @@ module GitWit
     end
 
     def self.rails_root
-      (File.expand_path(ENV["RAILS_ROOT"]) || 
-        File.expand_path("..", ENV["BUNDLE_GEMFILE"]) || Dir.pwd)
+      return File.expand_path(ENV["RAILS_ROOT"]) if ENV["RAILS_ROOT"].present?
+      return File.expand_path("..", ENV["BUNDLE_GEMFILE"]) if ENV["BUNDLE_GEMFILE"].present?
+      Dir.pwd
     end
 
     def self.boot_app
@@ -36,23 +37,31 @@ module GitWit
       [cmd, repository]
     end
 
-    def self.authenticate
-      user = GitWit.user_for_authentication ARGV[0]
+    def self.authenticate(username)
+      GitWit.user_for_authentication username
+    end
+
+    def self.authenticate!(username)
+      user = authenticate username
       abort "Anonymous access denied" unless user.present?
       user
     end
 
     def self.authorize(command, user, repository)
       op = command == "git-receive-pack" ? :write : :read
-      abort "Unauthorized" unless GitWit.authorize op, user, repository
+      GitWit.authorize op, user, repository
+    end
+
+    def self.authorize!(command, user, repository)
+      abort "Unauthorized" unless authorize command, user, repository
     end
 
     def self.run
       exec_with_sudo!
       boot_app
       command, repository = parse_ssh_original_command
-      user = authenticate
-      authorize command, user, repository
+      user = authenticate! ARGV[0]
+      authorize! command, user, repository
 
       repo_path = File.expand_path File.join(GitWit.repositories_path, repository)
       cmd = ["git", "shell", "-c", "#{command} '#{repo_path}'"]
