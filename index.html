@@ -91,13 +91,125 @@ repositories folder, initialize a repo and start the server:</p>
 <p>Your server will ask you for a username and password when you push - use 
 <code>writer</code> for both and it should accept your changes.</p>
 
-<h2>SSH support</h2>
+<h2>Advanced Usage (Devise, Cancan, etc.)</h2>
 
-<p>See the dummy app in <code>test/dummy</code> for a working example of <code>authorized_keys</code> 
-management for the <code>ssh_user</code>.</p>
+<p>See <a href="https://github.com/xdissent/git_wit/tree/master/test/dummy"><code>test/dummy</code></a> 
+for an example app that integrates 
+<a href="https://github.com/plataformatec/devise">Devise</a>, 
+<a href="https://github.com/ryanb/cancan">Cancan</a>, and 
+<a href="https://github.com/seyhunak/twitter-bootstrap-rails">twitter-bootstrap-rails</a>. 
+Example controllers for managing repositories and public keys are included.</p>
 
-<p><strong>NOTE</strong> To manage SSH keys, the <code>ssh_user</code> <em>must</em> be allowed to <code>sudo</code> as the
-Rails application user, <strong>and</strong> vice versa. More documentation is forthcoming.</p>
+<h2>SSH support - AKA: The hard part</h2>
+
+<p>To enable git operations over SSH, you <strong>must have a dedicated SSH user</strong>. This
+user will <em>only</em> be used for SSH autentication. Immediately after successfully
+authenticating, the SSH user will <code>sudo</code> to the application user to continue
+with the git operation. This eliminates the need for all the bat-shit crazy git
+pulls/pushes and SSH wrappers and crap that are typical of gitolite/gitosis
+setups. Your application user owns everything except the <code>authorized_keys</code> file
+and the <code>ssh_user</code> only needs to know how to call the <code>gw-shell</code> command.</p>
+
+<p>First, create a dedicated SSH user. On Mountain Lion:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> sudo dscl . -create /Groups/gitwit
+<span class="gp">$</span> sudo dscl . -create /Groups/gitwit PrimaryGroupID 333
+<span class="gp">$</span> sudo dscl . -create /Groups/gitwit RealName <span class="s2">"GitWit Server"</span>
+<span class="gp">$</span> sudo dscl . -create /Users/gitwit UniqueID 333
+<span class="gp">$</span> sudo dscl . -create /Users/gitwit PrimaryGroupID 333
+<span class="gp">$</span> sudo dscl . -create /Users/gitwit NFSHomeDirectory /var/gitwit
+<span class="gp">$</span> sudo dscl . -create /Users/gitwit UserShell /bin/bash
+<span class="gp">$</span> sudo dscl . -create /Users/gitwit RealName <span class="s2">"GitWit Server"</span>
+<span class="gp">$</span> sudo mkdir -p ~gitwit
+<span class="gp">$</span> sudo chown -R gitwit:gitwit ~gitwit
+</pre></div>
+
+<p>Enable the <code>ssh_user</code> config value in <code>config/initializers/git_wit.rb</code>:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">ssh_user</span> <span class="o">=</span> <span class="s2">"gitwit"</span>
+</pre></div>
+
+<p>Now your application user needs to be allowed to <code>sudo</code> as <code>ssh_user</code> and vice
+versa. Edit <code>/etc/sudoers</code> using <code>sudo visudo</code> and add the following lines:</p>
+
+<pre><code>rails_user ALL=(gitwit) NOPASSWD:ALL
+gitwit ALL=(rails_user) NOPASSWD:ALL
+</code></pre>
+
+<p>Replace <code>rails_user</code> with the application under which your Rails app runs, which
+will be your personal username if using <code>rails s</code> or Pow.</p>
+
+<p>Test your <code>sudo</code> rights and initialize the <code>ssh_user</code> environment:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> sudo -u gitwit -i
+<span class="gp">$</span> mkdir .ssh
+<span class="gp">$</span> chmod 700 .ssh
+<span class="gp">$</span> touch .ssh/authorized_keys
+<span class="gp">$</span> chmod 600 .ssh/authorized_keys
+</pre></div>
+
+<p>If you're using RVM or some other wacky environment manipulating tool, you're 
+going to want to adjust the login environment for <code>ssh_user</code> by creating a
+<code>~ssh_user/.bashrc</code> file. For example, to load a specific RVM gemset:</p>
+
+<div class="highlight"><pre><span class="nb">source</span> <span class="s2">"/Users/xdissent/.rvm/environments/ruby-1.9.3-p385@git_wit"</span>
+</pre></div>
+
+<p>You may also need to adjust the <code>PATH</code> to include the location of the <code>gw-shell</code>
+executable. If you're using <code>bundle --binstubs</code> for example:</p>
+
+<div class="highlight"><pre><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">"/path/to/app/bin:$PATH"</span>
+</pre></div>
+
+<p>The <code>gw-shell</code> command handles the authentication and authorization for the SSH
+protocol. It is initially called by <code>ssh_user</code> upon login (git operation) and it
+will attempt to <code>sudo</code> to the application user and re-run itself with the same
+environment. It determines which user is the "application user" by looking at
+who owns the rails app root folder. To determine where the app root is actually
+located, it looks for the ENV variables <code>RAILS_ROOT</code> and <code>BUNDLE_GEMFILE</code> in 
+order. When in doubt, set <code>RAILS_ROOT</code> in <code>~ssh_user/.bashrc</code>:</p>
+
+<div class="highlight"><pre><span class="nb">export </span><span class="nv">RAILS_ROOT</span><span class="o">=</span><span class="s2">"/path/to/app"</span>
+</pre></div>
+
+<p><strong>Remember to add <code>export RAILS_ENV="production"</code> for production deployments!</strong></p>
+
+<p>You can easily sanity check your environment using <code>sudo</code> as your app user:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> sudo -u gitwit -i
+<span class="gp">$</span> <span class="nb">source</span> .bashrc
+<span class="gp">$</span> which gw-shell
+<span class="go">/Users/xdissent/Code/git_wit/stubs/gw-shell</span>
+<span class="gp">$</span> <span class="nb">echo</span> <span class="nv">$RAILS_ROOT</span>
+<span class="go">/Users/xdissent/Code/git_wit/test/dummy</span>
+</pre></div>
+
+<p>Now all that's left to do is add some <code>authorized_keys</code> and you're all set. 
+This can be done from the rails console (<code>rails c</code>):</p>
+
+<div class="highlight"><pre><span class="no">GitWit</span><span class="o">.</span><span class="n">add_authorized_key</span> <span class="s2">"writer"</span><span class="p">,</span> <span class="s2">"ssh-rsa long-ass-key-string writer@example.com"</span>
+<span class="c1"># =&gt; nil </span>
+<span class="no">GitWit</span><span class="o">.</span><span class="n">authorized_keys_file</span><span class="o">.</span><span class="n">keys</span>
+<span class="c1"># =&gt; [command="gw-shell writer",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-rsa long-ass-key-string writer@example.com] </span>
+</pre></div>
+
+<p>You may now clone/push/pull over SSH - assuming the key you installed for 
+<code>writer</code> is known to your ssh agent (ie <code>~/.ssh/id_rsa</code>):</p>
+
+<div class="highlight"><pre><span class="gp">$</span> git clone gitweb@localhost:example.git
+</pre></div>
+
+<p>See the dummy app in 
+<a href="https://github.com/xdissent/git_wit/tree/master/test/dummy"><code>test/dummy</code></a> for 
+a more advanced example of <code>authorized_keys</code> management.</p>
+
+<h2>Git hooks and configs and umasks and everything</h2>
+
+<p>Dude, your app owns the repos now. Hooks are just files again! Rediscover the
+<a href="https://github.com/mojombo/grit">grit</a> gem and go nuts with all kinds of fun
+stuff that used to be a serious pain. Paranoid? Lock down the permissions on
+your repositories folder so that only your application user can read it. The
+SSH shell will still be executed as the application user so it's no sweat.</p>
 
 <p>This project rocks and uses MIT-LICENSE.</p>
       </section>
