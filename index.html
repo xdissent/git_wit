@@ -32,9 +32,20 @@
 
 <h2>Quickstart</h2>
 
-<p>Run <code>rails g git_wit:install</code> and checkout <code>config/initializers/git_wit.rb</code>.
-You'll want to first change <code>config.repositories_path</code> to a folder where you'd
-like to store your repositories. Let's use "tmp/repositories" in our app root
+<p>Create a Rails 3.2 app if you don't already have one. Add <code>git_wit</code> to your
+Gemfile:</p>
+
+<div class="highlight"><pre><span class="c1"># Use github for now - early development:</span>
+<span class="n">gem</span> <span class="s2">"git_wit"</span><span class="p">,</span> <span class="n">git</span><span class="p">:</span> <span class="s2">"https://github.com/xdissent/git_wit.git"</span>
+
+<span class="c1"># Later it might be safe to use a rubygems release:</span>
+<span class="c1"># gem "git_wit", "~&gt; 0.1.0"</span>
+</pre></div>
+
+<p>Run <code>bundle install</code> followed by <code>rails g git_wit:install</code> and then checkout 
+<a href="https://github.com/xdissent/git_wit/blob/master/lib/generators/git_wit/templates/git_wit.rb"><code>config/initializers/git_wit.rb</code></a>. 
+You'll want to first change <code>config.repositories_path</code> to a folder where you'd 
+like to store your repositories. Let's use "tmp/repositories" in our app root 
 for fun:</p>
 
 <div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">repositories_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"tmp"</span><span class="p">,</span> <span class="s2">"repositories"</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span>
@@ -196,7 +207,7 @@ This can be done from the rails console (<code>rails c</code>):</p>
 <p>You may now clone/push/pull over SSH - assuming the key you installed for 
 <code>writer</code> is known to your ssh agent (ie <code>~/.ssh/id_rsa</code>):</p>
 
-<div class="highlight"><pre><span class="gp">$</span> git clone gitweb@localhost:example.git
+<div class="highlight"><pre><span class="gp">$</span> git clone gitwit@localhost:example.git
 </pre></div>
 
 <p>See the dummy app in 
