@@ -144,6 +144,7 @@ DEPENDENCIES
   grit
   jquery-rails
   pry-rails
+  rake
   rolify
   sqlite3
   tunnels
