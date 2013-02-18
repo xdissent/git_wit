@@ -34,6 +34,9 @@ class PublicKeysController < ApplicationController
     @public_key.user = current_user
     respond_to do |format|
       if @public_key.save
+        # PublicKey.regenerate_authorized_keys
+        GitWit.add_authorized_key(current_user.username, @public_key.raw_content)
+
         format.html { redirect_to @public_key, notice: 'Public key was successfully created.' }
         format.json { render json: @public_key, status: :created, location: @public_key }
       else
@@ -47,6 +50,8 @@ class PublicKeysController < ApplicationController
   # DELETE /public_keys/1.json
   def destroy
     @public_key.destroy
+    # PublicKey.regenerate_authorized_keys
+    GitWit.remove_authorized_key(@public_key.raw_content)
 
     respond_to do |format|
       format.html { redirect_to public_keys_url }

@@ -16,7 +16,7 @@ class PublicKey < ActiveRecord::Base
   end
 
   def split_raw_content
-    @raw_content.scan(EXTRACT_CONTENT).flatten.map(&:to_s)
+    @raw_content.scan(EXTRACT_CONTENT).flatten.map(&:to_s).map(&:chomp)
   end
 
   def save_raw_content
@@ -29,5 +29,18 @@ class PublicKey < ActiveRecord::Base
     elsif @raw_content.present? && split_raw_content.first.blank?
       errors.add :raw_content, "cannot be parsed"
     end
+  end
+
+  def self.authorized_key_map
+    key_map = {}
+    all.each do |key|
+      key_map[key.user.username] ||= []
+      key_map[key.user.username] += [key.raw_content]
+    end
+    key_map
+  end
+
+  def self.regenerate_authorized_keys
+    GitWit.regenerate_authorized_keys(authorized_key_map)
   end
 end
