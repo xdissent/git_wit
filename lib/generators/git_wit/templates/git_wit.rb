@@ -11,6 +11,10 @@ GitWit.configure do |config|
   # as the application user.
   # config.ssh_user = "git"
 
+  # Configure the absolute path to the authorized_keys file for ssh_user. By
+  # default, this will be calculated as "~ssh_user/.ssh/authorized_keys". 
+  # config.authorized_keys_path = "/var/git/.ssh/authorized_keys"
+
   # Configure the path to the git-http-backend binary.
   # config.git_http_backend_path = "/usr/libexec/git-core/git-http-backend"
 

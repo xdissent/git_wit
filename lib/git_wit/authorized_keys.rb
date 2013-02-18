@@ -5,7 +5,7 @@ module GitWit
   def self.regenerate_authorized_keys(keymap)
     key_file = authorized_keys_file
     key_file.clear do |file|
-      keymap.each do |user, keys|
+      keymap.each do |username, keys|
         keys.each do |key|
           key_file.add AuthorizedKeys::Key.shell_key_for_username(username, key)
         end
@@ -26,7 +26,7 @@ module GitWit
   end
 
   def self.authorized_keys_path
-    File.expand_path("~#{ssh_user}/.ssh/authorized_keys")
+    config.authorized_keys_path || File.expand_path("~#{ssh_user}/.ssh/authorized_keys")
   end
 
   module AuthorizedKeys
@@ -60,7 +60,7 @@ module GitWit
       def owner(file = nil)
         file ||= location
         ::File.stat(file).uid
-      rescue Errno::EACCES
+      rescue Errno::EACCES, Errno::ENOENT
         parent = ::File.dirname file
         owner parent unless file == parent
       end
