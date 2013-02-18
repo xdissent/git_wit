@@ -8,4 +8,8 @@ class GitWit::InstallGenerator < Rails::Generators::Base
   def show_readme
     readme "README" if behavior == :invoke
   end
+
+  def mount_route
+    route 'mount GitWit::Engine => "/"'
+  end
 end
