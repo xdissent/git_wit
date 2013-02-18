@@ -28,7 +28,8 @@
         </ul>
       </header>
       <section>
-        <p><a href="https://travis-ci.org/xdissent/git_wit"><img src="https://travis-ci.org/xdissent/git_wit.png?branch=master" alt="Build Status"></a></p>
+        <p><a href="https://travis-ci.org/xdissent/git_wit"><img src="https://travis-ci.org/xdissent/git_wit.png?branch=master" alt="Build Status"></a>
+<a href="http://badge.fury.io/rb/git_wit"><img src="https://badge.fury.io/rb/git_wit.png" alt="Gem Version"></a></p>
 
 <h2>Quickstart</h2>
 
@@ -102,12 +103,40 @@ repositories folder, initialize a repo and start the server:</p>
 <p>Your server will ask you for a username and password when you push - use 
 <code>writer</code> for both and it should accept your changes.</p>
 
+<h2>SSL</h2>
+
+<p>You <strong>really</strong> should turn <code>insecure_auth</code> and <code>insecure_write</code> back to <code>false</code>
+as quickly as possible and enable SSL for read/write access. GitWit doesn't 
+need any special SSL configuration - just flip SSL on in whatever web server
+is running Rails. You can also use the 
+<a href="https://github.com/jugyo/tunnels">tunnels</a> gem to run your app with SSL in 
+development. Just add it to the Gemfile and run <code>bundle install</code> followed by
+<code>sudo tunnels</code> (or <code>rvmsudo tunnels</code> for RVM). For <code>rails s</code>, which runs on
+port 3000 by default, run <code>sudo tunnels 443 3000</code>. Now you may clone 
+repositories over HTTPS:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> git clone https://localhost/example.git
+</pre></div>
+
+<h2>A quick note about "local requests"</h2>
+
+<p>The default Rails development environment has a config value called 
+<code>consider_all_requests_local</code>, which is <code>true</code>. This prevents GitWit from 
+correctly handling authentication responses in some cases. It's not a big deal,
+you'll just be asked to reauthenticate more often and some responses will be
+slightly misleading. But the alternative solution, which is to set 
+<code>consider_all_requests_local</code> to false, disables any special Rails error 
+handling - quite a bummer for development. It would be nice to sort this out a
+little better in the future. Note that the production environment uses <code>false</code>
+by default and handles errors approriately.</p>
+
 <h2>Advanced Usage (Devise, Cancan, etc.)</h2>
 
 <p>See <a href="https://github.com/xdissent/git_wit/tree/master/test/dummy"><code>test/dummy</code></a> 
 for an example app that integrates 
 <a href="https://github.com/plataformatec/devise">Devise</a>, 
-<a href="https://github.com/ryanb/cancan">Cancan</a>, and 
+<a href="https://github.com/ryanb/cancan">Cancan</a>, 
+<a href="https://github.com/EppO/rolify">rolify</a> and
 <a href="https://github.com/seyhunak/twitter-bootstrap-rails">twitter-bootstrap-rails</a>. 
 Example controllers for managing repositories and public keys are included.</p>
 
