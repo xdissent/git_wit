@@ -40,7 +40,7 @@ for fun:</p>
 <div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">repositories_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"tmp"</span><span class="p">,</span> <span class="s2">"repositories"</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span>
 </pre></div>
 
-<p>Normall you wouldn't want to allow users to send their authentication 
+<p>Normally you wouldn't want to allow users to send their authentication 
 credentials over an insecure protocol like HTTP, because they'll be sent in 
 plain text over the wire. And since anonymous write access is always disallowed,
 that means you can't safely push over HTTP without SSL. To disable these 
