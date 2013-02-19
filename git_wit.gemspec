@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = GitWit::VERSION
   s.authors     = ["Greg Thornton"]
   s.email       = ["xdissent@me.com"]
-  s.homepage    = "https://github.com/xdissent/git_wit"
+  s.homepage    = "http://xdissent.github.com/git_wit/"
   s.description = s.summary = "Dead simple Git hosting for Rails apps."
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
