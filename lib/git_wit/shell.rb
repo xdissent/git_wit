@@ -1,16 +1,31 @@
 module GitWit
   module Shell
     SHELL_COMMANDS = %w(git-upload-pack git-receive-pack git-upload-archive)
-    SUDO_ENV_KEYS = %w(SSH_ORIGINAL_COMMAND GEM_HOME GEM_PATH PATH 
-      BUNDLE_GEMFILE RAILS_ENV)
+
+    def self.run
+      exec_with_sudo!
+      return run_debug if debug?
+      boot_app
+      command, repository = parse_ssh_original_command
+      user = authenticate! ARGV[0]
+      authorize! command, user, repository
+
+      repo_path = File.expand_path File.join(GitWit.repositories_path, repository)
+      cmd = ["git", "shell", "-c", "#{command} '#{repo_path}'"]
+      Rails.logger.info "GitWit SSH command: #{cmd.join " "}"
+      exec *cmd
+    end
 
     def self.exec_with_sudo!(user = app_user)
       return if running_as?(user)
       Dir.chdir rails_root
-      env = SUDO_ENV_KEYS.map { |k| "#{k}=#{ENV[k]}" if ENV[k] }.compact
-      env << "RAILS_ROOT=#{rails_root}" << "TERM=dumb"
-      cmd = ["sudo", "-u", "##{app_user}", *env, "-s", $PROGRAM_NAME, *ARGV]
+      ENV["TERM"] = "dumb"
+      cmd = ["sudo", "-u", "##{app_user}", $PROGRAM_NAME, *ARGV]
       exec *cmd
+    end
+
+    def self.debug?
+      ARGV.include? "--debug"
     end
 
     def self.running_as?(user)
@@ -33,7 +48,9 @@ module GitWit
 
     def self.parse_ssh_original_command
       /^(?<cmd>git-[^\s]+)\s+'(?<repository>[^']+\.git)'/ =~ ENV["SSH_ORIGINAL_COMMAND"]
-      abort "Uknown command #{cmd}" unless SHELL_COMMANDS.include? cmd
+      unless SHELL_COMMANDS.include? cmd
+        abort "Unknown command: #{ENV["SSH_ORIGINAL_COMMAND"]}" 
+      end
       [cmd, repository]
     end
 
@@ -56,17 +73,43 @@ module GitWit
       abort "Unauthorized" unless authorize command, user, repository
     end
 
-    def self.run
-      exec_with_sudo!
-      boot_app
-      command, repository = parse_ssh_original_command
-      user = authenticate! ARGV[0]
-      authorize! command, user, repository
-
-      repo_path = File.expand_path File.join(GitWit.repositories_path, repository)
-      cmd = ["git", "shell", "-c", "#{command} '#{repo_path}'"]
-      Rails.logger.info "GitWit SSH command: #{cmd.join " "}"
-      exec *cmd
+    def self.run_debug
+      require "pp"
+      puts "*** GitWit DEBUG ***\n\n"
+      puts "ENVIRONMENT:"
+      pp ENV
+      puts "\n*** GitWit DEBUG ***\n"
     end
+  end
+
+  def self.run_shell_test(quiet = true)
+    success = false
+    Dir.mktmpdir do |ssh|
+      user = "git_wit_shell_test"
+      key_file = File.join ssh, "id_rsa"
+      pub_key_file = "#{key_file}.pub"
+
+      cmd = %(ssh-keygen -q -t rsa -C "#{user}" -f "#{key_file}" -N "")
+      puts "Running #{cmd}" unless quiet
+      `#{cmd}`
+
+      pub_key = File.open(pub_key_file) { |f| f.read }
+      debug_key = AuthorizedKeys::Key.shell_key_for_username user, pub_key, true
+      authorized_keys_file.add debug_key
+      puts "Added key: #{debug_key}" unless quiet
+
+      cmd = %(SSH_AUTH_SOCK="" ssh -i "#{key_file}" #{GitWit.ssh_user}@localhost test 123)
+      puts "Running #{cmd}" unless quiet
+      out = `#{cmd}`
+      puts out unless quiet
+      success = $?.success?
+      if success
+        puts "Success" unless quiet
+      else
+        puts "ERROR!" unless quiet
+      end
+      authorized_keys_file.remove debug_key
+    end
+    success
   end
 end

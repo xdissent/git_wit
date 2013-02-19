@@ -92,9 +92,10 @@ module GitWit
       SHELL_OPTIONS = %w(no-port-forwarding no-X11-forwarding 
         no-agent-forwarding no-pty)
 
-      def self.shell_key_for_username(username, key)
+      def self.shell_key_for_username(username, key, debug = false)
         key = self.new key if key.is_a? String
-        key.options = [%(command="gw-shell #{username}"), *SHELL_OPTIONS]
+        debug = debug ? "--debug " : ""
+        key.options = [%(command="gw-shell #{debug}#{username}"), *SHELL_OPTIONS]
         key
       end
     end
