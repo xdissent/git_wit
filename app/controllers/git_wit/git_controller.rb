@@ -11,28 +11,40 @@ module GitWit
 
     def service
       # Shell out to git-http-backend.
-      out, err, status = Open3.capture3 shell_env, GitWit.git_http_backend_path, 
-        stdin_data: request.raw_post, binmode: true
-
-      # Bail if the backend failed.
-      raise GitError, err unless status.success?
-
-      # Split headers and body from response.
-      headers, body = out.split("\r\n\r\n", 2)
-      
-      # Convert CGI headers to HTTP headers.
-      headers = Hash[headers.split("\r\n").map { |l| l.split(/\s*\:\s*/, 2) }]
-
-      # Set status from header if given, otherwise it's a 200.
-      self.status = headers.delete("Status").to_i if headers.key? "Status"
-
-      # Set response body if given, otherwise empty string.
-      self.response_body = body.presence || ""
+      self.status, self.headers, self.response_body = run_shell
     end
 
     private
+    def run_shell
+      out, err, status = Open3.capture3 shell_env, shell_command, shell_opts
+      return parse_cgi_response out if status.success?
+      raise GitError, err
+    end
+
+    def parse_cgi_response(cgi_response)
+      cgi_headers, body = cgi_response.split("\r\n\r\n", 2)
+      headers = parse_cgi_headers(cgi_headers)
+      [parse_cgi_status(headers), headers, body]
+    end
+
+    def parse_cgi_headers(cgi_headers)
+      Hash[cgi_headers.split("\r\n").map { |l| l.split(/\s*\:\s*/, 2) }]
+    end
+
+    def parse_cgi_status(cgi_headers)
+      cgi_headers.key?("Status") ? cgi_headers.delete("Status").to_i : 200
+    end
+
     def shell_env
       request.headers.dup.extract!(*ENV_KEEPERS).merge(http_env).merge(git_env)
+    end
+
+    def shell_command
+      [GitWit.git_path, "http-backend"].join " "
+    end
+
+    def shell_opts
+      {stdin_data: request.raw_post, binmode: true}
     end
 
     def git_env
