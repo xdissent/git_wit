@@ -7,18 +7,9 @@ Dead simple Git hosting for Rails apps.
 
 ## Quickstart
 
-Create a Rails 3.2 app if you don't already have one. Add `git_wit` to your
-Gemfile:
-
-```ruby
-# Use github for now - early development:
-gem "git_wit", git: "https://github.com/xdissent/git_wit.git"
-
-# Later it might be safe to use a rubygems release:
-# gem "git_wit", "~> 0.1.0"
-```
-
-Run `bundle install` followed by `rails g git_wit:install` and then checkout 
+Create a Rails 3.2 app if you don't already have one. Add `gem "git_wit"` to 
+your `Gemfile` and run `bundle install`. Now run 
+`rails g git_wit:install` and configure GitWit by editing 
 [`config/initializers/git_wit.rb`](https://github.com/xdissent/git_wit/blob/master/lib/generators/git_wit/templates/git_wit.rb). 
 You'll want to first change `config.repositories_path` to a folder where you'd 
 like to store your repositories. Let's use "tmp/repositories" in our app root 
@@ -28,14 +19,12 @@ for fun:
 config.repositories_path = Rails.root.join("tmp", "repositories").to_s
 ```
 
-Normally you wouldn't want to allow users to send their authentication 
-credentials over an insecure protocol like HTTP, because they'll be sent in 
-plain text over the wire. And since anonymous write access is always disallowed,
-that means you can't safely push over HTTP without SSL. To disable these 
-protections, something you'd **never** do in a production environment, change
-the following config values in the initializer:
+Normally GitWit prevents the user from sending authentication credentials in
+plaintext (via HTTP without SSL). To disable these 
+protections for now, something you'd **never** do in a production environment, 
+change the following config values in the initializer:
 
-```
+```ruby
 config.insecure_auth = true
 config.insecure_write = true
 ```
@@ -160,8 +149,16 @@ Now your application user needs to be allowed to `sudo` as `ssh_user` and vice
 versa. Edit `/etc/sudoers` using `sudo visudo` and add the following lines:
 
 ```
+# Note: The following lines *must* appear *after* `Defaults env_reset`!
+# Allow gitwit to pass the following environment variables to sudo processes:
+Defaults:gitwit env_keep += "SSH_ORIGINAL_COMMAND GEM_HOME GEM_PATH"
+Defaults:gitwit env_keep += "BUNDLE_GEMFILE RAILS_ENV RAILS_ROOT"
+
+# Allow rails_user to run any command as gitwit
 rails_user ALL=(gitwit) NOPASSWD:ALL
-gitwit ALL=(rails_user) NOPASSWD:ALL
+
+# Allow gitwit to run *only* gw-shell as rails_user
+gitwit ALL=(rails_user) NOPASSWD:/full/path/to/bin/gw-shell
 ```
 
 Replace `rails_user` with the application under which your Rails app runs, which
