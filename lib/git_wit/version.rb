@@ -1,3 +1,4 @@
 module GitWit
-  VERSION = "0.0.4-pre"
+  # Public: Rubygems compatible version number String.
+  VERSION = "0.0.4.pre"
 end
