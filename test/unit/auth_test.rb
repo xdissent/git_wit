@@ -15,7 +15,7 @@ class AuthTest < ActiveSupport::TestCase
   end
 
   test "should allow custom user lookups for authentication" do
-    GitWit.config.user_for_authentication = ->(username) { "xxxx" }
+    GitWit.configure { |c| c.user_for_authentication = ->(username) { "xxxx" } }
     assert_equal "xxxx", GitWit.user_for_authentication("example")
   end
 
@@ -24,7 +24,7 @@ class AuthTest < ActiveSupport::TestCase
   end
 
   test "should allow custom user authentication" do
-    GitWit.config.authenticate = ->(user, password) { user == password }
+    GitWit.configure { |c| c.authenticate = ->(user, password) { user == password } }
     assert !GitWit.authenticate("example", "password")
     assert GitWit.authenticate("example", "example")
     assert GitWit.authenticate("password", "password")
@@ -35,8 +35,10 @@ class AuthTest < ActiveSupport::TestCase
   end
 
   test "should allow custom read authorization" do
-    GitWit.config.authorize_read = ->(user, repository) do
-      repository == "#{user}.git"
+    GitWit.configure do |c|
+      c.authorize_read = ->(user, repository) do
+        repository == "#{user}.git"
+      end
     end
     assert !GitWit.authorize_read("example", "test.git")
     assert GitWit.authorize_read("example", "example.git")
@@ -47,8 +49,10 @@ class AuthTest < ActiveSupport::TestCase
   end
 
   test "should allow custom write authorization" do
-    GitWit.config.authorize_write = ->(user, repository) do
-      repository == "#{user}.git"
+    GitWit.configure do |c|
+      c.authorize_write = ->(user, repository) do
+        repository == "#{user}.git"
+      end
     end
     assert !GitWit.authorize_write("example", "test.git")
     assert GitWit.authorize_write("example", "example.git")

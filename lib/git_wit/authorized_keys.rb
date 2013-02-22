@@ -28,10 +28,11 @@ module GitWit
   #
   # Returns nothing.
   def self.regenerate_authorized_keys(keys_map)
-    authorized_keys_file.clear do |file|
+    keys_file = authorized_keys_file
+    keys_file.clear do |file|
       keys_map.each do |username, keys|
         keys.each do |key|
-          file.add AuthorizedKeys::Key.shell_key_for_username(username, key)
+          keys_file.add AuthorizedKeys::Key.shell_key_for_username(username, key)
         end
       end
     end

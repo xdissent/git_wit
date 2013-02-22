@@ -67,20 +67,20 @@ class ShellTest < ActiveSupport::TestCase
   end
 
   test "should authenticate by only confirming that a user exists" do
-    GitWit.config.user_for_authentication = ->(username) { "xxxx" }
-    GitWit.config.authenticate = ->(user, password) { raise "tried auth" }
+    GitWit.configure { |c| c.user_for_authentication = ->(username) { "xxxx" } }
+    GitWit.configure { |c| c.authenticate = ->(user, password) { raise "tried auth" } }
     assert_nothing_raised do
       assert_equal "xxxx", GitWit::Shell.authenticate("example")
     end
-    GitWit.config.user_for_authentication = ->(username) { nil }
+    GitWit.configure { |c| c.user_for_authentication = ->(username) { nil } }
     assert_nothing_raised do
       assert_nil GitWit::Shell.authenticate("example")
     end
   end
 
   test "should authorize read/write based on git command given" do
-    GitWit.config.authorize_write = ->(user, repository) { user == "w" }
-    GitWit.config.authorize_read = ->(user, repository) { user == "r" }
+    GitWit.configure { |c| c.authorize_write = ->(user, repository) { user == "w" } }
+    GitWit.configure { |c| c.authorize_read = ->(user, repository) { user == "r" } }
     assert GitWit::Shell.authorize("git-receive-pack", "w", "example.git")
     assert !GitWit::Shell.authorize("git-receive-pack", "r", "example.git")
     assert !GitWit::Shell.authorize("git-upload-pack", "w", "example.git")

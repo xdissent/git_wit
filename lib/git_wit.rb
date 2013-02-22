@@ -12,7 +12,8 @@ module GitWit
   include ActiveSupport::Configurable
 
   config_accessor :repositories_path, :ssh_user, :realm,
-    :git_path, :insecure_write, :insecure_auth
+    :git_path, :insecure_write, :insecure_auth, :username_attribute,
+    :email_attribute, :name_attribute
 
   def self.reset_config!
     @_config = nil
@@ -36,6 +37,12 @@ module GitWit
       config.git_path = "git"
       config.insecure_write = false
       config.insecure_auth = false
+      config.authenticate = false
+      config.authorize_read = false
+      config.authorize_write = false
+      config.username_attribute = :login
+      config.email_attribute = :email
+      config.name_attribute = :name
     end
   end
 

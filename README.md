@@ -5,6 +5,23 @@
 
 Dead simple Git hosting for Rails apps.
 
+## Instant Gratification
+
+```
+$ rails new example --skip-bundle; cd example
+$ echo 'gem "git_wit"' >> Gemfile; bundle
+$ rails g git_wit:install insecure_auth insecure_write authenticate authorize_read authorize_write
+$ mkdir repositories
+$ git init --bare repositories/example.git
+$ echo "/repositories" >> .gitignore
+$ git init
+$ git add .
+$ git commit -m "That was easy"
+$ git remote add origin http://localhost:3000/example.git
+$ rails s -d
+$ git push -u origin master
+```
+
 ## Quickstart
 
 Create a Rails 3.2 app if you don't already have one. Add `gem "git_wit"` to 

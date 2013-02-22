@@ -17,8 +17,8 @@ module GitWit
     private
     def run_shell
       out, err, status = Open3.capture3 shell_env, shell_command, shell_opts
-      return parse_cgi_response out if status.success?
-      raise GitError, err
+      raise GitError, err unless status.success?
+      parse_cgi_response out 
     end
 
     def parse_cgi_response(cgi_response)
@@ -53,8 +53,8 @@ module GitWit
         GIT_PROJECT_ROOT: GitWit.repositories_path,
         PATH_INFO: "/#{params[:repository]}/#{params[:refs] || params[:service]}",
         REMOTE_USER: (user_attr(:username) || @username),
-        GIT_COMMITTER_NAME: user_attr(:committer_name),
-        GIT_COMMITTER_EMAIL: user_attr(:committer_email)
+        GIT_COMMITTER_NAME: user_attr(:name),
+        GIT_COMMITTER_EMAIL: user_attr(:email)
       }.reject { |_, v| v.nil? }.stringify_keys
     end
 
@@ -75,7 +75,7 @@ module GitWit
       end
 
       # Request credentials again if provided and no user was authenticated.
-      if @user.nil? && request.authorization.present?
+      if !@user.present? && request.authorization.present?
         request_http_basic_authentication_if_allowed
       end
     end
@@ -91,7 +91,7 @@ module GitWit
 
     def authorize_write
       # Never allow anonymous write operations.
-      return request_http_basic_authentication_if_allowed if @user.nil?
+      return request_http_basic_authentication_if_allowed unless @user.present?
 
       # Disallow write operations over insecure protocol per configuration.
       raise ForbiddenError if !GitWit.insecure_write && !request.ssl?
@@ -101,9 +101,9 @@ module GitWit
     end
 
     def authorize_read
-      return if GitWit.authorize_read(@user, params[:repository])
-      return request_http_basic_authentication_if_allowed if @user.nil?
-      raise UnauthorizedError
+      return true if GitWit.authorize_read(@user, params[:repository])
+      raise UnauthorizedError if @user.present?
+      request_http_basic_authentication_if_allowed
     end
 
     # TODO: Sure about this?
@@ -117,12 +117,14 @@ module GitWit
     end
 
     def user_attr(sym)
-      try_user GitWit.config.send("#{sym}_attribute")
+      try_user GitWit.send("#{sym}_attribute")
     end
 
     def try_user(sym_or_proc)
-      return @user.try(sym_or_proc) if sym_or_proc.is_a? Symbol
-      sym_or_proc.call(@user) if sym_or_proc.respond_to? :call
+      return sym_or_proc.call(@user) if sym_or_proc.respond_to? :call
+      if sym_or_proc.is_a?(Symbol) && @user.respond_to?(sym_or_proc)
+        @user.try(sym_or_proc)
+      end
     end
   end
 end

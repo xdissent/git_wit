@@ -4,7 +4,7 @@ class AuthorizedKeysTest < ActiveSupport::TestCase
   def setup
     GitWit.stash_config
     GitWit.default_config!
-    GitWit.config.ssh_user = `whoami`.chomp
+    GitWit.configure { |c| c.ssh_user = `whoami`.chomp }
     @tmp_keys_path = Rails.root.join("tmp", "authorized_keys").to_s
   end
 
@@ -19,12 +19,12 @@ class AuthorizedKeysTest < ActiveSupport::TestCase
   end
 
   test "should accept an absolute path for authorized_keys_path in config" do
-    GitWit.config.authorized_keys_path = @tmp_keys_path
+    GitWit.configure { |c| c.authorized_keys_path = @tmp_keys_path }
     assert_equal @tmp_keys_path, GitWit.authorized_keys_path
   end
 
   test "should generate authorized_keys from key map" do
-    GitWit.config.authorized_keys_path = @tmp_keys_path
+    GitWit.configure { |c| c.authorized_keys_path = @tmp_keys_path }
     GitWit.regenerate_authorized_keys(
       "one" => ["ssh-rsa fakekey1 one@fake1", "ssh-rsa fakekey2 one@fake2"], 
       "two" => ["ssh-rsa fakekey3 two@fake"])
@@ -34,7 +34,7 @@ class AuthorizedKeysTest < ActiveSupport::TestCase
   end
 
   test "should be able to add keys one at a time" do
-    GitWit.config.authorized_keys_path = @tmp_keys_path
+    GitWit.configure { |c| c.authorized_keys_path = @tmp_keys_path }
     key_file = GitWit.authorized_keys_file
     GitWit.add_authorized_key "one", "ssh-rsa fakekey1 one@fake1"
     assert_equal 1, key_file.keys.length
@@ -43,7 +43,7 @@ class AuthorizedKeysTest < ActiveSupport::TestCase
   end
 
   test "should be able to remove keys one at a time" do
-    GitWit.config.authorized_keys_path = @tmp_keys_path
+    GitWit.configure { |c| c.authorized_keys_path = @tmp_keys_path }
     GitWit.regenerate_authorized_keys(
       "one" => ["ssh-rsa fakekey1 one@fake1", "ssh-rsa fakekey2 one@fake2"], 
       "two" => ["ssh-rsa fakekey3 two@fake"])

@@ -10,7 +10,7 @@ module GitWit
     if config.authenticate.respond_to?(:call)
       return config.authenticate.call(user, password)
     end
-    false
+    config.authenticate
   end
 
   def self.authorize_write(user, repository)
@@ -23,6 +23,6 @@ module GitWit
 
   def self.authorize(operation, user, repository)
     cfg = config.send "authorize_#{operation}".to_sym
-    cfg.respond_to?(:call) ? cfg.call(user, repository) : false
+    cfg.respond_to?(:call) ? cfg.call(user, repository) : cfg
   end
 end
