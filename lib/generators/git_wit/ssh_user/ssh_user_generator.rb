@@ -8,6 +8,10 @@ module GitWit
     
     argument :home, type: :string, required: false
 
+    def check_user
+      raise Thor::Error, "GitWit ssh_user is not configured." unless ssh_user.present?
+    end
+
     def create_user
       @home = dscl_user ssh_user, home
     end
