@@ -5,54 +5,117 @@
 
 Dead simple Git hosting for Rails apps.
 
-## Instant Gratification
+## Crash Course
 
-```
-$ rails new example --skip-bundle; cd example
-$ echo 'gem "git_wit"' >> Gemfile; bundle
+Start hosting git repositories in seconds. Create a new Rails app and 
+install GitWit:
+
+```console
+$ rails new example --skip-bundle; cd example       # New Rails app
+$ echo 'gem "git_wit"' >> Gemfile; bundle           # Install git_wit gem
 $ rails g git_wit:install insecure_auth insecure_write authenticate authorize_read authorize_write
-$ mkdir repositories
-$ git init --bare repositories/example.git
-$ echo "/repositories" >> .gitignore
+$ rails s -d  # <- Start Rails server               # ^- Install/config GitWit
+```
+
+That's it - your app is hosting git repositories. Create a repositories folder,
+init a bare repo, and push to it:
+
+```console
 $ git init
 $ git add .
 $ git commit -m "That was easy"
+$ mkdir repositories                                # Hosted repos folder
+$ git init --bare repositories/example.git          # Example bare repo
 $ git remote add origin http://localhost:3000/example.git
-$ rails s -d
-$ git push -u origin master
+$ git push origin master  # Push example app to itself to store in itself!
 ```
 
-## Quickstart
+HTTPS? That works too:
 
-Create a Rails 3.2 app if you don't already have one. Add `gem "git_wit"` to 
-your `Gemfile` and run `bundle install`. Now run 
-`rails g git_wit:install` and configure GitWit by editing 
+```console
+$ sudo echo "pre-loading sudo so we can background tunnels in a moment"
+$ rails g git_wit:install authenticate authorize_read authorize_write -f
+$ gem install tunnels
+$ sudo tunnels 443 3000 &       # or `rvmsudo tunnels...` if using RVM
+$ git remote add https https://localhost/example.git
+$ GIT_SSL_NO_VERIFY=1 git push https master:https-master  # Trust yourself
+```
+
+Still not impressed? Try SSH (OS X only currently):
+
+```console
+$ rails g git_wit:install authenticate authorize_read authorize_write ssh_user:git_wit -f
+$ rails g git_wit:ssh_user      # Creates/configs git_wit SSH user
+$ rake git_wit:ssh:add_key      # Grant access for ~/.ssh/id_rsa.pub
+$ git remote add ssh git_wit@localhost:example.git
+$ git push ssh master:ssh-master
+```
+
+You might want to get rid of that system user you just created:
+
+```console
+$ rails d git_wit:ssh_user
+```
+
+
+## Overview
+
+GitWit adds git hosting abilities to any Rails app. It provides configurable
+authentication and authorization methods that can be integrated with any 
+user/repository access model you'd like. All configuration is handled through a
+single initializer, 
 [`config/initializers/git_wit.rb`](https://github.com/xdissent/git_wit/blob/master/lib/generators/git_wit/templates/git_wit.rb). 
-You'll want to first change `config.repositories_path` to a folder where you'd 
-like to store your repositories. Let's use "tmp/repositories" in our app root 
-for fun:
+Run `rails g git_wit:install` to generate a default configuration for 
+modification. All configuration details are contained within comments inside
+the initializer, or read on for the highlights.
 
-```ruby
-config.repositories_path = Rails.root.join("tmp", "repositories").to_s
-```
+
+## Authentication
 
 Normally GitWit prevents the user from sending authentication credentials in
-plaintext (via HTTP without SSL). To disable these 
-protections for now, something you'd **never** do in a production environment, 
-change the following config values in the initializer:
+plaintext (via HTTP without SSL). To disable these protections, something you'd 
+**never** do in a production environment, change the following config values 
+in the initializer:
 
 ```ruby
 config.insecure_auth = true
 config.insecure_write = true
 ```
 
-Now let's set up some simple (fake) authentication and authorization:
+Authentication is handled by the `config.authenticate` attribute. A valid
+authenticator is any callable that accepts a user model instance and a 
+clear-text password. The authenticator should return a boolean response 
+indicating whether the user is authenticated for the given password.
+
+The user model is simply the username as a string by default. Before passing
+the user to the authenticator, GitWit will call `config.user_for_authenication`,
+passing it the username and expecting a new user model instance in return. For
+example:
+
+```ruby
+config.user_for_authentication = ->(username) do
+  User.active.find_by_login username: username
+end
+```
+
+Now the `config.authenticate` authenticator will recieve the `User` instance:
 
 ```ruby
 config.authenticate = ->(user, password) do
-  %w(reader writer).include?(user) && user == password
+  user.valid_password? password   # user is a User
 end
+```
 
+## Authorization
+
+Two configuration attributes are responsible for authorization: 
+`config.authorize_read` and `config.authorize_write`. They're passed the user 
+instance (already authenticated) and the repository path as a string. The 
+repository path is relative to `config.repositories_path` 
+(`<app root>/repositories` by default). The authorizers should return a boolean
+to grant or deny access accordingly. A simple example:
+
+```ruby
 config.authorize_read = ->(user, repository) do
   %w(reader writer).include?(user)
 end
@@ -61,51 +124,6 @@ config.authorize_write = ->(user, repository) do
   user == "writer"
 end
 ```
-
-What we've done is effectively create two users: `reader` and `writer`. Both can
-read all repositories, but only `writer` may write (and can write to any repo.)
-Both users are considered authenticated if the password matches the username.
-
-Now your app is ready to start serving git repos over HTTP. Just create the 
-repositories folder, initialize a repo and start the server:
-
-```console
-$ mkdir -p tmp/repositories
-$ git init --bare tmp/repositories/example.git
-$ rails s
-```
-
-Clone your repo, make some changes, and push:
-
-```console
-$ git clone http://localhost:3000/example.git
-$ cd example
-$ touch README
-$ git add README
-$ git commit -m "First"
-$ git push origin master
-```
-
-Your server will ask you for a username and password when you push - use 
-`writer` for both and it should accept your changes.
-
-
-## SSL
-
-You **really** should turn `insecure_auth` and `insecure_write` back to `false`
-as quickly as possible and enable SSL for read/write access. GitWit doesn't 
-need any special SSL configuration - just flip SSL on in whatever web server
-is running Rails. You can also use the 
-[tunnels](https://github.com/jugyo/tunnels) gem to run your app with SSL in 
-development. Just add it to the Gemfile and run `bundle install` followed by
-`sudo tunnels` (or `rvmsudo tunnels` for RVM). For `rails s`, which runs on
-port 3000 by default, run `sudo tunnels 443 3000`. Now you may clone 
-repositories over HTTPS:
-
-```console
-$ git clone https://localhost/example.git
-```
-
 
 ## A quick note about "local requests"
 
@@ -139,114 +157,25 @@ authenticating, the SSH user will `sudo` to the application user to continue
 with the git operation. This eliminates the need for all the bat-shit crazy git
 pulls/pushes and SSH wrappers and crap that are typical of gitolite/gitosis
 setups. Your application user owns everything except the `authorized_keys` file
-and the `ssh_user` only needs to know how to call the `gw-shell` command.
+and the `ssh_user` only needs to know how to call the `git_wit git-shell` 
+command.
 
-First, create a dedicated SSH user. On Mountain Lion:
-
-```console
-$ sudo dscl . -create /Groups/gitwit
-$ sudo dscl . -create /Groups/gitwit PrimaryGroupID 333
-$ sudo dscl . -create /Groups/gitwit RealName "GitWit Server"
-$ sudo dscl . -create /Users/gitwit UniqueID 333
-$ sudo dscl . -create /Users/gitwit PrimaryGroupID 333
-$ sudo dscl . -create /Users/gitwit NFSHomeDirectory /var/gitwit
-$ sudo dscl . -create /Users/gitwit UserShell /bin/bash
-$ sudo dscl . -create /Users/gitwit RealName "GitWit Server"
-$ sudo mkdir -p ~gitwit
-$ sudo chown -R gitwit:gitwit ~gitwit
-```
-
-Enable the `ssh_user` config value in `config/initializers/git_wit.rb`:
+GitWit comes with an initializer to set everything up for you. First, enable the 
+`ssh_user` config in `config/initializers/git_wit.rb`:
 
 ```ruby
-config.ssh_user = "gitwit"
+config.ssh_user = "git_wit"
 ```
 
-Now your application user needs to be allowed to `sudo` as `ssh_user` and vice
-versa. Edit `/etc/sudoers` using `sudo visudo` and add the following lines:
-
-```
-# Note: The following lines *must* appear *after* `Defaults env_reset`!
-# Allow gitwit to pass the following environment variables to sudo processes:
-Defaults:gitwit env_keep += "SSH_ORIGINAL_COMMAND GEM_HOME GEM_PATH"
-Defaults:gitwit env_keep += "BUNDLE_GEMFILE RAILS_ENV RAILS_ROOT"
-
-# Allow rails_user to run any command as gitwit
-rails_user ALL=(gitwit) NOPASSWD:ALL
-
-# Allow gitwit to run *only* gw-shell as rails_user
-gitwit ALL=(rails_user) NOPASSWD:/full/path/to/bin/gw-shell
-```
-
-Replace `rails_user` with the application under which your Rails app runs, which
-will be your personal username if using `rails s` or Pow.
-
-Test your `sudo` rights and initialize the `ssh_user` environment:
+Now run the initializer:
 
 ```console
-$ sudo -u gitwit -i
-$ mkdir .ssh
-$ chmod 700 .ssh
-$ touch .ssh/authorized_keys
-$ chmod 600 .ssh/authorized_keys
+$ rails g git_wit:ssh_user
 ```
 
-If you're using RVM or some other wacky environment manipulating tool, you're 
-going to want to adjust the login environment for `ssh_user` by creating a
-`~ssh_user/.bashrc` file. For example, to load a specific RVM gemset:
+To add a public key: `rake git_wit:ssh:add_key`
 
-```bash
-source "/Users/xdissent/.rvm/environments/ruby-1.9.3-p385@git_wit"
-```
-
-You may also need to adjust the `PATH` to include the location of the `gw-shell`
-executable. If you're using `bundle --binstubs` for example:
-
-```bash
-export PATH="/path/to/app/bin:$PATH"
-```
-
-The `gw-shell` command handles the authentication and authorization for the SSH
-protocol. It is initially called by `ssh_user` upon login (git operation) and it
-will attempt to `sudo` to the application user and re-run itself with the same
-environment. It determines which user is the "application user" by looking at
-who owns the rails app root folder. To determine where the app root is actually
-located, it looks for the ENV variables `RAILS_ROOT` and `BUNDLE_GEMFILE` in 
-order. When in doubt, set `RAILS_ROOT` in `~ssh_user/.bashrc`:
-
-```bash
-export RAILS_ROOT="/path/to/app"
-```
-
-**Remember to add `export RAILS_ENV="production"` for production deployments!**
-
-You can easily sanity check your environment using `sudo` as your app user:
-
-```console
-$ sudo -u gitwit -i
-$ source .bashrc
-$ which gw-shell
-/Users/xdissent/Code/git_wit/stubs/gw-shell
-$ echo $RAILS_ROOT
-/Users/xdissent/Code/git_wit/test/dummy
-```
-
-Now all that's left to do is add some `authorized_keys` and you're all set. 
-This can be done from the rails console (`rails c`):
-
-```ruby
-GitWit.add_authorized_key "writer", "ssh-rsa long-ass-key-string writer@example.com"
-# => nil 
-GitWit.authorized_keys_file.keys
-# => [command="gw-shell writer",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-rsa long-ass-key-string writer@example.com] 
-```
-
-You may now clone/push/pull over SSH - assuming the key you installed for 
-`writer` is known to your ssh agent (ie `~/.ssh/id_rsa`):
-
-```console
-$ git clone gitwit@localhost:example.git
-```
+Something not working? `rake git_wit:ssh:debug`
 
 See the dummy app in 
 [`test/dummy`](https://github.com/xdissent/git_wit/tree/master/test/dummy) for 
