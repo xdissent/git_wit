@@ -1,0 +1,12 @@
+
+# Note: The following lines *must* appear *after* `Defaults env_reset`!
+# Allow gitwit to pass the following environment variables to sudo processes:
+Defaults:<%= ssh_user %> env_keep += "SSH_ORIGINAL_COMMAND GEM_HOME GEM_PATH"
+Defaults:<%= ssh_user %> env_keep += "BUNDLE_GEMFILE RAILS_ENV RAILS_ROOT"
+
+# Allow <%= rails_user %> to run any command as <%= ssh_user %>
+<%= rails_user %> ALL=(<%= ssh_user %>) NOPASSWD:ALL
+
+# Allow <%= ssh_user %> to run *only* gw-shell as <%= rails_user %>
+<%= ssh_user %> ALL=(<%= rails_user %>) NOPASSWD:<%= File.join(git_wit_bindir, "git_wit") %>
+

@@ -1,0 +1,11 @@
+Description:
+    Creates an SSH-only user for GitWit access.
+
+Example:
+    rails generate git_wit:ssh_user /home/gitwit
+
+    This will create:
+        /home/gitwit
+        /home/gitwit/.ssh
+        /home/gitwit/.ssh/authorized_keys
+        /home/gitwit/.bashrc

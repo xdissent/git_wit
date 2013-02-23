@@ -6,8 +6,8 @@ module GitWit
 
       def self.shell_key_for_username(username, key, debug = false)
         key = self.new key if key.is_a? String
-        debug = debug ? "--debug " : ""
-        key.options = [%(command="gw-shell #{debug}#{username}"), *SHELL_OPTIONS]
+        cmd = debug ? "debug" : "git-shell #{username}"
+        key.options = [%(command="git_wit #{cmd}"), *SHELL_OPTIONS]
         key
       end
     end

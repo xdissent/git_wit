@@ -7,6 +7,7 @@ require "git_wit/shell"
 require "git_wit/authorized_keys"
 require "git_wit/authorized_keys/key"
 require "git_wit/authorized_keys/file"
+require "git_wit/cli"
 
 module GitWit
   include ActiveSupport::Configurable

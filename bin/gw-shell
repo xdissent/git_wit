@@ -1,4 +1,0 @@
-#!/usr/bin/env ruby
-
-require "git_wit/shell"
-GitWit::Shell.run
