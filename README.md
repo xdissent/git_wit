@@ -21,9 +21,7 @@ That's it - your app is hosting git repositories. Create a repositories folder,
 init a bare repo, and push to it:
 
 ```console
-$ git init
-$ git add .
-$ git commit -m "That was easy"
+$ git init; git add .; git commit -m "That was easy"
 $ mkdir repositories                                # Hosted repos folder
 $ git init --bare repositories/example.git          # Example bare repo
 $ git remote add origin http://localhost:3000/example.git
@@ -35,7 +33,7 @@ HTTPS? That works too:
 ```console
 $ sudo echo "pre-loading sudo so we can background tunnels in a moment"
 $ rails g git_wit:install authenticate authorize_read authorize_write -f
-$ gem install tunnels
+$ echo 'gem "tunnels"' >> Gemfile; bundle
 $ sudo tunnels 443 3000 &       # or `rvmsudo tunnels...` if using RVM
 $ git remote add https https://localhost/example.git
 $ GIT_SSL_NO_VERIFY=1 git push https master:https-master  # Trust yourself
