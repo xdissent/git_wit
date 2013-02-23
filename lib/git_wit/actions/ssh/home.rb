@@ -37,6 +37,7 @@ module GitWit::Actions::Ssh
           end
           base.template "bashrc.tt", ".bashrc"
         end
+        base.chmod ".", 0755
         `sudo cp -R '#{dir}' '#{home}'`
         `sudo chown -R #{user}:#{user} '#{home}'`
       end
