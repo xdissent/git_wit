@@ -18,7 +18,7 @@ module GitWit
   def self.authorized_keys_file
     path = authorized_keys_path
     return AuthorizedKeys::File.new path if path.present?
-    raise ConfigurationError "Could not determine path to authorized_keys file"
+    raise ConfigurationError, "Could not determine path to authorized_keys file"
   end
 
   # Public: Clear out all existing public keys in the authorized_keys file and

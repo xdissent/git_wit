@@ -17,7 +17,8 @@ module GitWit
 
       protected
       def parse_ssh_original_command
-        @command, @repository = GIT_SHELL_COMMAND_RE.match(ENV["SSH_ORIGINAL_COMMAND"])
+        m = GIT_SHELL_COMMAND_RE.match ENV["SSH_ORIGINAL_COMMAND"]
+        nothing, @command, @repository = m.to_a if m.present?
       end
 
       def validate_git_shell_command
@@ -28,14 +29,12 @@ module GitWit
 
       def authenticate(user)
         @user = GitWit.user_for_authentication user
-        authenticate(user)
         abort "Anonymous access denied via SSH" unless @user.present?
       end
 
       def authorize
         op = @command == "git-receive-pack" ? :write : :read
-        GitWit.authorize op, @user, @repository
-        abort "Unauthorized" unless authorize
+        abort "Unauthorized" unless GitWit.authorize op, @user, @repository
       end
 
       def run_git_shell

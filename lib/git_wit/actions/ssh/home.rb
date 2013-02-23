@@ -28,6 +28,7 @@ module GitWit::Actions::Ssh
       old_destination = base.destination_root
       Dir.mktmpdir do |dir|
         base.destination_root = dir
+        base.chmod ".", 0755
         base.inside "." do
           base.empty_directory ".ssh"
           base.chmod ".ssh", 0700
@@ -37,7 +38,6 @@ module GitWit::Actions::Ssh
           end
           base.template "bashrc.tt", ".bashrc"
         end
-        base.chmod ".", 0755
         `sudo cp -R '#{dir}' '#{home}'`
         `sudo chown -R #{user}:#{user} '#{home}'`
       end
