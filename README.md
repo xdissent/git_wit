@@ -85,7 +85,14 @@ config.insecure_write = true
 Authentication is handled by the `config.authenticate` attribute. A valid
 authenticator is any callable that accepts a user model instance and a 
 clear-text password. The authenticator should return a boolean response 
-indicating whether the user is authenticated for the given password.
+indicating whether the user is authenticated for the given password. To allow
+any user as long as the password matches the username:
+
+```ruby
+config.authenticate = ->(user, password) do
+  user == password
+end
+```
 
 The user model is simply the username as a string by default. Before passing
 the user to the authenticator, GitWit will call `config.user_for_authenication`,
@@ -106,6 +113,7 @@ config.authenticate = ->(user, password) do
 end
 ```
 
+
 ## Authorization
 
 Two configuration attributes are responsible for authorization: 
@@ -124,6 +132,7 @@ config.authorize_write = ->(user, repository) do
   user == "writer"
 end
 ```
+
 
 ## A quick note about "local requests"
 
@@ -176,10 +185,6 @@ $ rails g git_wit:ssh_user
 To add a public key: `rake git_wit:ssh:add_key`
 
 Something not working? `rake git_wit:ssh:debug`
-
-See the dummy app in 
-[`test/dummy`](https://github.com/xdissent/git_wit/tree/master/test/dummy) for 
-a more advanced example of `authorized_keys` management.
 
 
 ## Git hooks and configs and umasks and everything
