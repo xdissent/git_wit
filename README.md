@@ -39,7 +39,7 @@ $ git remote add https https://localhost/example.git
 $ GIT_SSL_NO_VERIFY=1 git push https master:https-master  # Trust yourself
 ```
 
-Still not impressed? Try SSH (OS X only currently):
+Still not impressed? Try SSH:
 
 ```console
 $ rails g git_wit:install authenticate authorize_read authorize_write ssh_user:git_wit -f
