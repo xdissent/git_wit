@@ -20,7 +20,7 @@ module GitWit::Actions::Ssh
     end
 
     def exists?
-      `sudo grep '#{sentinel}' /etc/sudoers &>/dev/null`
+      `sudo grep '#{sentinel}' /etc/sudoers 2>/dev/null`
       $?.success?
     end
 

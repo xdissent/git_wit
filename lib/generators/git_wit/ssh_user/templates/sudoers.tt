@@ -4,6 +4,9 @@
 Defaults:<%= ssh_user %> env_keep += "SSH_ORIGINAL_COMMAND GEM_HOME GEM_PATH"
 Defaults:<%= ssh_user %> env_keep += "BUNDLE_GEMFILE RAILS_ENV RAILS_ROOT"
 
+# The following line is required for many linux distros, but not OS X:
+<%= '# ' if mac? %>Defaults:<%= ssh_user %> secure_path="<%= git_wit_bindir %>:<%= RbConfig::CONFIG['bindir'] %>:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 # Allow <%= rails_user %> to run any command as <%= ssh_user %>
 <%= rails_user %> ALL=(<%= ssh_user %>) NOPASSWD:ALL
 

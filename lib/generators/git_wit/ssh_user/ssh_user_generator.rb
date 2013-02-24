@@ -13,15 +13,16 @@ module GitWit
     end
 
     def create_user
-      @home = dscl_user ssh_user, home
+      @home = dscl_user ssh_user, home if mac?
+      @home = etc_user ssh_user, home if linux?
     end
 
     def create_group
-      dscl_group ssh_group
+      dscl_group ssh_group if mac?
     end
 
     def add_user_to_group
-      dscl_group_membership ssh_user, ssh_group
+      dscl_group_membership ssh_user, ssh_group if mac?
     end
 
     def build_home
@@ -33,6 +34,14 @@ module GitWit
     end
 
     protected
+    def mac?
+      !!(RbConfig::CONFIG['host_os'] =~ /^darwin/)
+    end
+
+    def linux?
+      !!(RbConfig::CONFIG['host_os'] =~ /^linux/)
+    end
+
     def ssh_user
       GitWit.ssh_user
     end

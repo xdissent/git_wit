@@ -3,6 +3,7 @@ module GitWit
     module Debug
       def debug
         boot_app
+        require "pp"
         debug_banner "Start"
         pp "ENVIRONMENT:", ENV
         GitWit.configure { |c| pp "GitWit Config:", c }
