@@ -8,3 +8,4 @@ test/dummy/.sass-cache
 test/dummy/bin
 .powenv
 .rvmrc
+.vagrant
