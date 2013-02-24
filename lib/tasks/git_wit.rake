@@ -16,7 +16,9 @@ namespace "git_wit" do
         GitWit.authorized_keys_file.add debug_key
         puts "Added key: #{debug_key}"
 
-        cmd = %(SSH_AUTH_SOCK="" ssh -i "#{key_file}" #{GitWit.ssh_user}@localhost test 123)
+        cmd = %(SSH_AUTH_SOCK="" ssh ) +
+          %(-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ) +
+          %(-i "#{key_file}" #{GitWit.ssh_user}@localhost test 123)
         puts "Running #{cmd}"
         out = `#{cmd}`
         puts out
