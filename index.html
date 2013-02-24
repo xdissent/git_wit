@@ -31,91 +31,117 @@
         <p><a href="https://travis-ci.org/xdissent/git_wit"><img src="https://travis-ci.org/xdissent/git_wit.png?branch=master" alt="Build Status"></a>
 <a href="http://badge.fury.io/rb/git_wit"><img src="https://badge.fury.io/rb/git_wit.png" alt="Gem Version"></a></p>
 
-<h2>Quickstart</h2>
+<h2>Crash Course</h2>
 
-<p>Create a Rails 3.2 app if you don't already have one. Add <code>git_wit</code> to your
-Gemfile:</p>
+<p>Start hosting git repositories in seconds. Create a new Rails app and 
+install GitWit:</p>
 
-<div class="highlight"><pre><span class="c1"># Use github for now - early development:</span>
-<span class="n">gem</span> <span class="s2">"git_wit"</span><span class="p">,</span> <span class="n">git</span><span class="p">:</span> <span class="s2">"https://github.com/xdissent/git_wit.git"</span>
-
-<span class="c1"># Later it might be safe to use a rubygems release:</span>
-<span class="c1"># gem "git_wit", "~&gt; 0.1.0"</span>
+<div class="highlight"><pre><span class="gp">$</span> rails new example --skip-bundle; <span class="nb">cd </span>example       <span class="c"># New Rails app</span>
+<span class="gp">$</span> <span class="nb">echo</span> <span class="s1">'gem "git_wit"'</span> &gt;&gt; Gemfile; bundle           <span class="c"># Install git_wit gem</span>
+<span class="gp">$</span> rails g git_wit:install insecure_auth insecure_write authenticate authorize_read authorize_write
+<span class="gp">$</span> rails s -d  <span class="c"># &lt;- Start Rails server               # ^- Install/config GitWit</span>
 </pre></div>
 
-<p>Run <code>bundle install</code> followed by <code>rails g git_wit:install</code> and then checkout 
+<p>That's it - your app is hosting git repositories. Create a repositories folder,
+init a bare repo, and push to it:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> git init; git add .; git commit -m <span class="s2">"That was easy"</span>
+<span class="gp">$</span> mkdir repositories                                <span class="c"># Hosted repos folder</span>
+<span class="gp">$</span> git init --bare repositories/example.git          <span class="c"># Example bare repo</span>
+<span class="gp">$</span> git remote add origin http://localhost:3000/example.git
+<span class="gp">$</span> git push origin master  <span class="c"># Push example app to itself to store in itself!</span>
+</pre></div>
+
+<p>HTTPS? That works too:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> sudo <span class="nb">echo</span> <span class="s2">"pre-loading sudo so we can background tunnels in a moment"</span>
+<span class="gp">$</span> rails g git_wit:install authenticate authorize_read authorize_write -f
+<span class="gp">$</span> <span class="nb">echo</span> <span class="s1">'gem "tunnels"'</span> &gt;&gt; Gemfile; bundle
+<span class="gp">$</span> sudo tunnels 443 3000 &amp;       <span class="c"># or `rvmsudo tunnels...` if using RVM</span>
+<span class="gp">$</span> git remote add https https://localhost/example.git
+<span class="gp">$</span> <span class="nv">GIT_SSL_NO_VERIFY</span><span class="o">=</span>1 git push https master:https-master  <span class="c"># Trust yourself</span>
+</pre></div>
+
+<p>Still not impressed? Try SSH:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> rails g git_wit:install authenticate authorize_read authorize_write ssh_user:git_wit -f
+<span class="gp">$</span> rails g git_wit:ssh_user      <span class="c"># Creates/configs git_wit SSH user</span>
+<span class="gp">$</span> rake git_wit:ssh:add_key      <span class="c"># Grant access for ~/.ssh/id_rsa.pub</span>
+<span class="gp">$</span> git remote add ssh git_wit@localhost:example.git
+<span class="gp">$</span> git push ssh master:ssh-master
+</pre></div>
+
+<p>You might want to get rid of that system user you just created:</p>
+
+<div class="highlight"><pre><span class="gp">$</span> rails d git_wit:ssh_user
+</pre></div>
+
+<h2>Overview</h2>
+
+<p>GitWit adds git hosting abilities to any Rails app. It provides configurable
+authentication and authorization methods that can be integrated with any 
+user/repository access model you'd like. All configuration is handled through a
+single initializer, 
 <a href="https://github.com/xdissent/git_wit/blob/master/lib/generators/git_wit/templates/git_wit.rb"><code>config/initializers/git_wit.rb</code></a>. 
-You'll want to first change <code>config.repositories_path</code> to a folder where you'd 
-like to store your repositories. Let's use "tmp/repositories" in our app root 
-for fun:</p>
+Run <code>rails g git_wit:install</code> to generate a default configuration for 
+modification. All configuration details are contained within comments inside
+the initializer, or read on for the highlights.</p>
 
-<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">repositories_path</span> <span class="o">=</span> <span class="no">Rails</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"tmp"</span><span class="p">,</span> <span class="s2">"repositories"</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span>
+<h2>Authentication</h2>
+
+<p>Normally GitWit prevents the user from sending authentication credentials in
+plaintext (via HTTP without SSL). To disable these protections, something you'd 
+<strong>never</strong> do in a production environment, change the following config values 
+in the initializer:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">insecure_auth</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="n">config</span><span class="o">.</span><span class="n">insecure_write</span> <span class="o">=</span> <span class="kp">true</span>
 </pre></div>
 
-<p>Normally you wouldn't want to allow users to send their authentication 
-credentials over an insecure protocol like HTTP, because they'll be sent in 
-plain text over the wire. And since anonymous write access is always disallowed,
-that means you can't safely push over HTTP without SSL. To disable these 
-protections, something you'd <strong>never</strong> do in a production environment, change
-the following config values in the initializer:</p>
-
-<pre><code>config.insecure_auth = true
-config.insecure_write = true
-</code></pre>
-
-<p>Now let's set up some simple (fake) authentication and authorization:</p>
+<p>Authentication is handled by the <code>config.authenticate</code> attribute. A valid
+authenticator is any callable that accepts a user model instance and a 
+clear-text password. The authenticator should return a boolean response 
+indicating whether the user is authenticated for the given password. To allow
+any user as long as the password matches the username:</p>
 
 <div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="k">do</span>
-  <span class="sx">%w(reader writer)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">user</span> <span class="o">==</span> <span class="n">password</span>
+  <span class="n">user</span> <span class="o">==</span> <span class="n">password</span>
 <span class="k">end</span>
+</pre></div>
 
-<span class="n">config</span><span class="o">.</span><span class="n">authorize_read</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">repository</span><span class="p">)</span> <span class="k">do</span>
+<p>The user model is simply the username as a string by default. Before passing
+the user to the authenticator, GitWit will call <code>config.user_for_authenication</code>,
+passing it the username and expecting a new user model instance in return. For
+example:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">user_for_authentication</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">username</span><span class="p">)</span> <span class="k">do</span>
+  <span class="no">User</span><span class="o">.</span><span class="n">active</span><span class="o">.</span><span class="n">find_by_login</span> <span class="n">username</span><span class="p">:</span> <span class="n">username</span>
+<span class="k">end</span>
+</pre></div>
+
+<p>Now the <code>config.authenticate</code> authenticator will recieve the <code>User</code> instance:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">authenticate</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">user</span><span class="o">.</span><span class="n">valid_password?</span> <span class="n">password</span>   <span class="c1"># user is a User</span>
+<span class="k">end</span>
+</pre></div>
+
+<h2>Authorization</h2>
+
+<p>Two configuration attributes are responsible for authorization: 
+<code>config.authorize_read</code> and <code>config.authorize_write</code>. They're passed the user 
+instance (already authenticated) and the repository path as a string. The 
+repository path is relative to <code>config.repositories_path</code> 
+(<code>&lt;app root&gt;/repositories</code> by default). The authorizers should return a boolean
+to grant or deny access accordingly. A simple example:</p>
+
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">authorize_read</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">repository</span><span class="p">)</span> <span class="k">do</span>
   <span class="sx">%w(reader writer)</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
 <span class="k">end</span>
 
 <span class="n">config</span><span class="o">.</span><span class="n">authorize_write</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">repository</span><span class="p">)</span> <span class="k">do</span>
   <span class="n">user</span> <span class="o">==</span> <span class="s2">"writer"</span>
 <span class="k">end</span>
-</pre></div>
-
-<p>What we've done is effectively create two users: <code>reader</code> and <code>writer</code>. Both can
-read all repositories, but only <code>writer</code> may write (and can write to any repo.)
-Both users are considered authenticated if the password matches the username.</p>
-
-<p>Now your app is ready to start serving git repos over HTTP. Just create the 
-repositories folder, initialize a repo and start the server:</p>
-
-<div class="highlight"><pre><span class="gp">$</span> mkdir -p tmp/repositories
-<span class="gp">$</span> git init --bare tmp/repositories/example.git
-<span class="gp">$</span> rails s
-</pre></div>
-
-<p>Clone your repo, make some changes, and push:</p>
-
-<div class="highlight"><pre><span class="gp">$</span> git clone http://localhost:3000/example.git
-<span class="gp">$</span> <span class="nb">cd </span>example
-<span class="gp">$</span> touch README
-<span class="gp">$</span> git add README
-<span class="gp">$</span> git commit -m <span class="s2">"First"</span>
-<span class="gp">$</span> git push origin master
-</pre></div>
-
-<p>Your server will ask you for a username and password when you push - use 
-<code>writer</code> for both and it should accept your changes.</p>
-
-<h2>SSL</h2>
-
-<p>You <strong>really</strong> should turn <code>insecure_auth</code> and <code>insecure_write</code> back to <code>false</code>
-as quickly as possible and enable SSL for read/write access. GitWit doesn't 
-need any special SSL configuration - just flip SSL on in whatever web server
-is running Rails. You can also use the 
-<a href="https://github.com/jugyo/tunnels">tunnels</a> gem to run your app with SSL in 
-development. Just add it to the Gemfile and run <code>bundle install</code> followed by
-<code>sudo tunnels</code> (or <code>rvmsudo tunnels</code> for RVM). For <code>rails s</code>, which runs on
-port 3000 by default, run <code>sudo tunnels 443 3000</code>. Now you may clone 
-repositories over HTTPS:</p>
-
-<div class="highlight"><pre><span class="gp">$</span> git clone https://localhost/example.git
 </pre></div>
 
 <h2>A quick note about "local requests"</h2>
@@ -148,100 +174,23 @@ authenticating, the SSH user will <code>sudo</code> to the application user to c
 with the git operation. This eliminates the need for all the bat-shit crazy git
 pulls/pushes and SSH wrappers and crap that are typical of gitolite/gitosis
 setups. Your application user owns everything except the <code>authorized_keys</code> file
-and the <code>ssh_user</code> only needs to know how to call the <code>gw-shell</code> command.</p>
+and the <code>ssh_user</code> only needs to know how to call the <code>git_wit git-shell</code> 
+command.</p>
 
-<p>First, create a dedicated SSH user. On Mountain Lion:</p>
+<p>GitWit comes with an initializer to set everything up for you. First, enable the 
+<code>ssh_user</code> config in <code>config/initializers/git_wit.rb</code>:</p>
 
-<div class="highlight"><pre><span class="gp">$</span> sudo dscl . -create /Groups/gitwit
-<span class="gp">$</span> sudo dscl . -create /Groups/gitwit PrimaryGroupID 333
-<span class="gp">$</span> sudo dscl . -create /Groups/gitwit RealName <span class="s2">"GitWit Server"</span>
-<span class="gp">$</span> sudo dscl . -create /Users/gitwit UniqueID 333
-<span class="gp">$</span> sudo dscl . -create /Users/gitwit PrimaryGroupID 333
-<span class="gp">$</span> sudo dscl . -create /Users/gitwit NFSHomeDirectory /var/gitwit
-<span class="gp">$</span> sudo dscl . -create /Users/gitwit UserShell /bin/bash
-<span class="gp">$</span> sudo dscl . -create /Users/gitwit RealName <span class="s2">"GitWit Server"</span>
-<span class="gp">$</span> sudo mkdir -p ~gitwit
-<span class="gp">$</span> sudo chown -R gitwit:gitwit ~gitwit
+<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">ssh_user</span> <span class="o">=</span> <span class="s2">"git_wit"</span>
 </pre></div>
 
-<p>Enable the <code>ssh_user</code> config value in <code>config/initializers/git_wit.rb</code>:</p>
+<p>Now run the initializer:</p>
 
-<div class="highlight"><pre><span class="n">config</span><span class="o">.</span><span class="n">ssh_user</span> <span class="o">=</span> <span class="s2">"gitwit"</span>
+<div class="highlight"><pre><span class="gp">$</span> rails g git_wit:ssh_user
 </pre></div>
 
-<p>Now your application user needs to be allowed to <code>sudo</code> as <code>ssh_user</code> and vice
-versa. Edit <code>/etc/sudoers</code> using <code>sudo visudo</code> and add the following lines:</p>
+<p>To add a public key: <code>rake git_wit:ssh:add_key</code></p>
 
-<pre><code>rails_user ALL=(gitwit) NOPASSWD:ALL
-gitwit ALL=(rails_user) NOPASSWD:ALL
-</code></pre>
-
-<p>Replace <code>rails_user</code> with the application under which your Rails app runs, which
-will be your personal username if using <code>rails s</code> or Pow.</p>
-
-<p>Test your <code>sudo</code> rights and initialize the <code>ssh_user</code> environment:</p>
-
-<div class="highlight"><pre><span class="gp">$</span> sudo -u gitwit -i
-<span class="gp">$</span> mkdir .ssh
-<span class="gp">$</span> chmod 700 .ssh
-<span class="gp">$</span> touch .ssh/authorized_keys
-<span class="gp">$</span> chmod 600 .ssh/authorized_keys
-</pre></div>
-
-<p>If you're using RVM or some other wacky environment manipulating tool, you're 
-going to want to adjust the login environment for <code>ssh_user</code> by creating a
-<code>~ssh_user/.bashrc</code> file. For example, to load a specific RVM gemset:</p>
-
-<div class="highlight"><pre><span class="nb">source</span> <span class="s2">"/Users/xdissent/.rvm/environments/ruby-1.9.3-p385@git_wit"</span>
-</pre></div>
-
-<p>You may also need to adjust the <code>PATH</code> to include the location of the <code>gw-shell</code>
-executable. If you're using <code>bundle --binstubs</code> for example:</p>
-
-<div class="highlight"><pre><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">"/path/to/app/bin:$PATH"</span>
-</pre></div>
-
-<p>The <code>gw-shell</code> command handles the authentication and authorization for the SSH
-protocol. It is initially called by <code>ssh_user</code> upon login (git operation) and it
-will attempt to <code>sudo</code> to the application user and re-run itself with the same
-environment. It determines which user is the "application user" by looking at
-who owns the rails app root folder. To determine where the app root is actually
-located, it looks for the ENV variables <code>RAILS_ROOT</code> and <code>BUNDLE_GEMFILE</code> in 
-order. When in doubt, set <code>RAILS_ROOT</code> in <code>~ssh_user/.bashrc</code>:</p>
-
-<div class="highlight"><pre><span class="nb">export </span><span class="nv">RAILS_ROOT</span><span class="o">=</span><span class="s2">"/path/to/app"</span>
-</pre></div>
-
-<p><strong>Remember to add <code>export RAILS_ENV="production"</code> for production deployments!</strong></p>
-
-<p>You can easily sanity check your environment using <code>sudo</code> as your app user:</p>
-
-<div class="highlight"><pre><span class="gp">$</span> sudo -u gitwit -i
-<span class="gp">$</span> <span class="nb">source</span> .bashrc
-<span class="gp">$</span> which gw-shell
-<span class="go">/Users/xdissent/Code/git_wit/stubs/gw-shell</span>
-<span class="gp">$</span> <span class="nb">echo</span> <span class="nv">$RAILS_ROOT</span>
-<span class="go">/Users/xdissent/Code/git_wit/test/dummy</span>
-</pre></div>
-
-<p>Now all that's left to do is add some <code>authorized_keys</code> and you're all set. 
-This can be done from the rails console (<code>rails c</code>):</p>
-
-<div class="highlight"><pre><span class="no">GitWit</span><span class="o">.</span><span class="n">add_authorized_key</span> <span class="s2">"writer"</span><span class="p">,</span> <span class="s2">"ssh-rsa long-ass-key-string writer@example.com"</span>
-<span class="c1"># =&gt; nil </span>
-<span class="no">GitWit</span><span class="o">.</span><span class="n">authorized_keys_file</span><span class="o">.</span><span class="n">keys</span>
-<span class="c1"># =&gt; [command="gw-shell writer",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-rsa long-ass-key-string writer@example.com] </span>
-</pre></div>
-
-<p>You may now clone/push/pull over SSH - assuming the key you installed for 
-<code>writer</code> is known to your ssh agent (ie <code>~/.ssh/id_rsa</code>):</p>
-
-<div class="highlight"><pre><span class="gp">$</span> git clone gitwit@localhost:example.git
-</pre></div>
-
-<p>See the dummy app in 
-<a href="https://github.com/xdissent/git_wit/tree/master/test/dummy"><code>test/dummy</code></a> for 
-a more advanced example of <code>authorized_keys</code> management.</p>
+<p>Something not working? <code>rake git_wit:ssh:debug</code></p>
 
 <h2>Git hooks and configs and umasks and everything</h2>
 
