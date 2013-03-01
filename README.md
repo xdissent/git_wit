@@ -1,6 +1,7 @@
 # GitWit
 
 [![Build Status](https://travis-ci.org/xdissent/git_wit.png?branch=master)](https://travis-ci.org/xdissent/git_wit)
+[![Code Climate](https://codeclimate.com/github/xdissent/git_wit.png)](https://codeclimate.com/github/xdissent/git_wit)
 [![Gem Version](https://badge.fury.io/rb/git_wit.png)](http://badge.fury.io/rb/git_wit)
 
 Dead simple Git hosting for Rails apps.
