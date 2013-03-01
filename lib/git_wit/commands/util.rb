@@ -5,8 +5,13 @@ module GitWit
         return if running_as?(user)
         Dir.chdir rails_root
         ENV["TERM"] = "dumb"
+        load_gw_env
         cmd = ["sudo", "-u", "##{user}", $PROGRAM_NAME, *ARGV]
         exec *cmd
+      end
+
+      def load_gw_env
+        ENV.keys.each { |k| ENV[k.gsub /^GW_/, ""] = ENV[k] if k.start_with? "GW_" }
       end
 
       def running_as?(user)
