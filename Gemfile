@@ -26,7 +26,7 @@ gem "pry-rails"
 gem "better_errors"
 gem "binding_of_caller"
 gem "tunnels"
-gem "vagrant", "~> 1.0.6"
+# gem "vagrant", "~> 1.0.6"
 
 # Add rake for travic-ci
 gem "rake", group: :test
